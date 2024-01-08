@@ -13,9 +13,9 @@ import lombok.Setter;
 public class ApplicationProperties {
 
 	
-	String PdfPath;
+
 	@ConfigProperty(name = "appconfig.esign.pdf.fontfile")
-	String pdfFontFile;
+	String pdfFontfile;
 	
 	@ConfigProperty(name = "appconfig.file.basepath")
 	String fileBasePath;

@@ -47,7 +47,7 @@ public interface IClosureController {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@APIResponse(description = "Method to Generate PDF")
-	Response GeneratePdf(@NotNull @QueryParam("token") String Token);
+	Response GeneratePdf(@NotNull @QueryParam("token") String Token,@NotNull @QueryParam("dpId") String dpId);
 
 	
 	@Path("/getDpDetails")
@@ -61,5 +61,12 @@ public interface IClosureController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	ResponseModel getRekycLogs(@NotNull @QueryParam("UserId")String UserId);
+	
+	
+	@Path("/updateAccTypeReason")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	ResponseModel updateAccTypeReason(@NotNull @QueryParam("UserId")String UserId,@NotNull @QueryParam("accType") int accType,@NotNull @QueryParam("accCloseReason")String accCloseReason);
 
 }

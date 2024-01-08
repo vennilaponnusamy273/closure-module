@@ -37,14 +37,17 @@ public class ClosurelogEntity extends CommonEntity{
 	@Column(name = "cmrpath")
 	private String cmrpath;
 	
-	@Column(name = "accoutType")
-	private String accoutType;
-	
 	@Column(name = "nsdl")
 	private int nsdl;
 	
 	@Column(name = "csdl")
 	private int cdsl;
+	
+	@Column(name = "accounttype")
+	private int accType=0;
+	
+	@Column(name = "accclosingreason")
+	private String accclosingreasion;
 
 	
 }

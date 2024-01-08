@@ -13,6 +13,7 @@ import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -109,6 +110,12 @@ public class ClosureoService  implements IClosureoService{
 	                    }
 	                    saveRekycLog(token, reKycResmodel);
 	                }
+	            }
+	            if (!positionStatus && !fundsStatus && !holdingsStatus) {
+	                // All statuses are false, set a common remark or message
+	            	 saveRekycLog(token, reKycResmodel);
+	            	response.setReason("No positions, funds, or holdings available.");
+	                response.setResult(reKycResmodel);
 	            }
 	        }
 	    } catch (Exception e) {
@@ -345,7 +352,8 @@ public class ClosureoService  implements IClosureoService{
 	}
 
 	@Override
-	public Response GeneratePdf(String token) {
+	@Transactional
+	public Response GeneratePdf(String token,String dpId) {
 	    String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
 	    if (OS.contains(EkycConstants.OS_WINDOWS)) {
 	        slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
@@ -354,22 +362,18 @@ public class ClosureoService  implements IClosureoService{
 	        ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
 
 	        if (clientBasicData != null) {
-	        	 HashMap<String, String> map = mapping(clientBasicData);
-
-	            File file;
-	            if (map.get("NSDLPDF")!=null) {
-	                file = new File(props.getNsdlpdf());
-	            } else if (map.get("CSDLPDF")!=null) {
-	                file = new File(props.getCsdlpdf());
-	            } else {
-	                return Response.status(Response.Status.BAD_REQUEST)
-	                        .entity("Invalid value for WayofPdf: ").build();
-	            }
-	            System.out.println("the file"+file);
-	            PDDocument document = PDDocument.load(file);
-
-	           
-
+	        	 HashMap<String, String> map = mapping(clientBasicData,dpId);
+					File filensdl = new File(props.getNsdlpdf());
+					File filecdsl = new File(props.getCsdlpdf());
+					PDDocument document;
+					if (map.get("NSDLPDF") != null) {
+						document = PDDocument.load(filensdl);
+					} else if (map.get("CSDLPDF") != null) {
+						document = PDDocument.load(filecdsl);
+					} else {
+						return Response.status(Response.Status.BAD_REQUEST).entity("Invalid value for WayofPdf: ")
+								.build();
+					}
 	            String outputPath = props.getFileBasePath() + clientBasicData.getTermCode();
 	            new File(outputPath).mkdir();
 
@@ -383,11 +387,9 @@ public class ClosureoService  implements IClosureoService{
 	            String contentType = URLConnection.guessContentTypeFromName(fileName);
 	            String path = outputPath + slash + fileName;
 	            File savedFile = new File(path);
-
-	            ResponseBuilder response = Response.ok(savedFile);
-	            response.type(contentType);
-	            response.header("Content-Disposition", "attachment;filename=" + savedFile.getName());
-	            return response.build();
+	            ResponseBuilder response = Response.ok((Object) savedFile);
+				response.type(contentType);
+				response.header("Content-Disposition", "attachment;filename=" + savedFile.getName());
 	        } else {
 	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 	                    .entity(MessageConstants.USER_ID_INVALID).build();
@@ -397,14 +399,16 @@ public class ClosureoService  implements IClosureoService{
 	        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 	                .entity(MessageConstants.FILE_NOT_FOUND).build();
 	    }
+	    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND).build();
 	}
 
 
-	private void pdfInsertCoordinates(PDDocument document, List<ClosureNSDLandCSDLEntity> pdfDatas,
+	public void pdfInsertCoordinates(PDDocument document, List<ClosureNSDLandCSDLEntity> pdfDatas,
 			HashMap<String, String> map, ClientBasicData clientBasicData) {
 		try {
-		File fontFile = new File(props.getPdfFontFile());
-		PDFont font = PDTrueTypeFont.loadTTF(document, fontFile);
+			File fontFile = new File(props.getPdfFontfile());
+			System.out.println("the fontFile"+fontFile);
+			PDFont font = PDTrueTypeFont.loadTTF(document,fontFile);
 		for (ClosureNSDLandCSDLEntity pdfData : pdfDatas) {
 			float x = Float.parseFloat(pdfData.getXCoordinate());
 			float y = Float.parseFloat(pdfData.getYCoordinate());
@@ -438,7 +442,19 @@ public class ClosureoService  implements IClosureoService{
 					contentStream.showText(inputText.toUpperCase());
 				}
 				contentStream.endText();
-			}  else if (columnType.equalsIgnoreCase("CSDLtick")) {
+			}  else if (columnType.equalsIgnoreCase("CSDLtick")&& map.get("CSDLPDF") != null) {
+				String tick = "\u2713";
+				String inputText = map.get(columnNames);
+				if (inputText != null) {
+					contentStream.beginText();
+					contentStream.setFont(PDType1Font.ZAPF_DINGBATS, 12);
+					contentStream.setNonStrokingColor(0, 0, 0);
+					contentStream.newLineAtOffset(x, y);
+					contentStream.showText(tick);
+					contentStream.endText();
+				}
+			} 
+			else if (columnType.equalsIgnoreCase("NSDLtick")&& map.get("NSDLPDF") != null) {
 				String tick = "\u2713";
 				String inputText = map.get(columnNames);
 				if (inputText != null) {
@@ -457,11 +473,12 @@ public class ClosureoService  implements IClosureoService{
 		}
 	}
 
-	private HashMap<String, String> mapping(ClientBasicData clientBasicData) {
+	private HashMap<String, String> mapping(ClientBasicData clientBasicData,String dpId) {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date = new Date();
 
+		
 		// Format the current date using the specified pattern
 		String formattedDate = formatter.format(date);
 
@@ -477,9 +494,15 @@ public class ClosureoService  implements IClosureoService{
 		map.put("Date7", String.valueOf(formattedDate.charAt(8))); // Separator (-)
 		map.put("Date8", String.valueOf(formattedDate.charAt(9))); // Separator (-)
 
-		// Print the map
-		map.forEach((key, value) -> System.out.println(key + ": " + value));
-		map.put("NSDLPDF", "NSDLPDF");
+		if (dpId != null) {
+		    if (dpId.startsWith("120")) {
+		    	map.put("CSDLPDF", "CSDLPDF");
+		    	map.put("CDSL",dpId);
+		    } else if (dpId.startsWith("IN")) {
+		    	map.put("NSDLPDF", "NSDLPDF");
+		    	map.put("NSDL",dpId);
+		    }
+		}
 		String tradingId = clientBasicData.getOwnCode();
 		if (tradingId != null && tradingId.length() >= 9) {
 		    map.put("TRADING ID:1", String.valueOf(tradingId.charAt(0)));
@@ -504,9 +527,38 @@ public class ClosureoService  implements IClosureoService{
 		    map.put("Client ID6", String.valueOf(clientId.charAt(5)));
 		}
 		
+		
+		if (dpId != null && dpId.length() >= 8) {
+		    map.put("DP ID1", String.valueOf(dpId.charAt(0)));
+		    map.put("DP ID2", String.valueOf(dpId.charAt(1)));
+		    map.put("DP ID3", String.valueOf(dpId.charAt(2)));
+		    map.put("DP ID4", String.valueOf(dpId.charAt(3)));
+		    map.put("DP ID5", String.valueOf(dpId.charAt(4)));
+		    map.put("DP ID6", String.valueOf(dpId.charAt(5)));
+		    map.put("DP ID7", String.valueOf(dpId.charAt(6)));
+		    map.put("DP ID8", String.valueOf(dpId.charAt(7)));
+		}
+		
+		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
+		if (closurelogEntity != null && closurelogEntity.getAccType() > 0) {
+			if (closurelogEntity.getAccType() == 1) {
+				map.put("Both Trading And Demat", "1");
+			} else if (closurelogEntity.getAccType() == 2) {
+				map.put("Only Dp", "2");
+			} else if (closurelogEntity.getAccType() == 3) {
+				map.put("Only trading", "3");
+			}
+		}
+		map.put("Reason for Closure",closurelogEntity.getAccclosingreasion()!=null?closurelogEntity.getAccclosingreasion():"");
 		 map.put("Name of the First / Sole Holder",clientBasicData.getNameAsperPan());
-		 map.put("Address for Correspondence",clientBasicData.getCorraddress1()+" "+clientBasicData.getCorraddress2());
-		 map.put("Address for Correspondence1",clientBasicData.getCorraddress3());
+		 String corAddress = clientBasicData.getCorraddress1() + " " + clientBasicData.getCorraddress2() + " " + clientBasicData.getCorraddress3();
+		 System.out.println("the corAddress"+corAddress);
+		 String first95Letters = corAddress.length() > 65 ? corAddress.substring(0, 65) : corAddress;
+		 System.out.println("the first95Letters"+first95Letters);
+		 String restOfAddress = corAddress.length() > 65 ? corAddress.substring(65) : "";
+		 System.out.println("the first95Letters"+restOfAddress);
+		 map.put("Address for Correspondence",first95Letters);
+		 map.put("Address for Correspondence1",restOfAddress);
 		 map.put("City",clientBasicData.getCity());
 		 map.put("State",clientBasicData.getState());
 		 String pincode=clientBasicData.getPincode();
@@ -536,5 +588,27 @@ public class ClosureoService  implements IClosureoService{
 	        }
 			return responseModel;
 	}
+
+
+	@Override
+	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason) {
+	    ResponseModel responseModel = new ResponseModel();
+	    ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+	    
+	    if (closurelogEntity == null) {
+	        closurelogEntity = new ClosurelogEntity();
+	        closurelogEntity.setUserId(userId);
+	    }
+	    
+	    closurelogEntity.setAccType(accType);
+	    closurelogEntity.setAccclosingreasion(accCloseReason);
+	    closurelogRepository.save(closurelogEntity);	    
+	    responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	    responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+	    responseModel.setResult(closurelogEntity);
+	    
+	    return responseModel;
+	}
+
 	
 }

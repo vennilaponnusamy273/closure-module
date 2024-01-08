@@ -27,7 +27,7 @@ public interface IClosureoService {
 	 * @param Token
 	 * @return
 	 */
-	Response GeneratePdf(String token);
+	Response GeneratePdf(String token,String dpId);
 
 	/**
 	 * method to getDpDetails
@@ -41,5 +41,7 @@ public interface IClosureoService {
 	ResponseModel getDpDetails(String token);
 
 	ResponseModel getRekycLogs(String userId);
+
+	ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason);
 
 }

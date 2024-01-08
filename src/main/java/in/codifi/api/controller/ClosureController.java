@@ -54,9 +54,9 @@ public class ClosureController implements IClosureController {
 	
 	@SuppressWarnings("unused")
 	@Override
-	public Response GeneratePdf(String Token) {
+	public Response GeneratePdf(String Token,String dpId) {
 		if (Token !=null) {
-			return closureoService.GeneratePdf(Token);
+			return closureoService.GeneratePdf(Token,dpId);
 		} else {
 			if ( Token ==null) {
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.USER_ID_NULL)
@@ -84,6 +84,17 @@ public class ClosureController implements IClosureController {
 		ResponseModel responseModel = new ResponseModel();
 		if (UserId != null ) {
 			responseModel = closureoService.getRekycLogs(UserId);
+		} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+		}
+		return responseModel;
+	}
+
+	@Override
+	public ResponseModel updateAccTypeReason(String UserId, int accType, String accCloseReason) {
+		ResponseModel responseModel = new ResponseModel();
+		if (UserId != null ) {
+			responseModel = closureoService.updateAccTypeReason(UserId,accType,accCloseReason);
 		} else {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
 		}
