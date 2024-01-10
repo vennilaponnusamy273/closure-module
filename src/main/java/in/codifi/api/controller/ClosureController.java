@@ -1,6 +1,7 @@
 package in.codifi.api.controller;
 
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
@@ -20,6 +21,7 @@ public class ClosureController implements IClosureController {
 	IClosureService closureService;
 	@Inject
 	CommonMethods commonMethods;
+	
 	
 	@Override
 	public ResponseModel PositionFundsHoldingsCheck(String Token) {
@@ -128,10 +130,12 @@ public class ClosureController implements IClosureController {
 	}
 
 	@Override
-	public ResponseModel closuremailotp(String Token) {
+	public ResponseModel closuremailotp(String EmailId,String MobileNo) throws MessagingException {
 		ResponseModel responseModel = new ResponseModel();
-		if (Token != null ) {
-			responseModel = closureService.closuremailotp(Token,"");
+		if (EmailId != null &&MobileNo!=null) {
+			//ClosureService.closureMail(Token);
+			
+		responseModel = closureService.closuremailotp(EmailId,MobileNo);
 		} else {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
 		}

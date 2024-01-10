@@ -121,7 +121,9 @@ public class ClosureService  implements IClosureService{//Closure
 	                    if (clientBasicData != null) {
 	                        DocumentEntity oldRecord = docrepository
 	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CMR_COPY);
-	                        if (oldRecord != null) {
+	                        DocumentEntity oldRecordsign = docrepository
+	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CLOSURE_SIGN);
+	                        if (oldRecord != null&&oldRecordsign!=null) {
 	                            reKycResmodel.setHoldings(false);
 	                            reKycResmodel.setHoldings_remarks(MessageConstants.CMR_AVAILABLE);
 	                            response.setStat(EkycConstants.SUCCESS_STATUS);
@@ -721,7 +723,7 @@ public class ClosureService  implements IClosureService{//Closure
 		return null;
 	}
 
-	private void closureMail(String emailID) throws MessagingException {
+	public void closureMail(String emailID) throws MessagingException {
 		try {
 			if (emailID != null) {
 				commonMethods.sendEsignClosureMail(emailID);

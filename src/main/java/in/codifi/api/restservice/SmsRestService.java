@@ -7,7 +7,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.utilities.CommonMethods;
-import in.codifi.api.utilities.EkycConstants;
 
 @ApplicationScoped
 public class SmsRestService {
@@ -22,18 +21,17 @@ public class SmsRestService {
 	/**
 	 * Method to send otp to Mobile Number
 	 * 
-	 * @author Sowmiya
 	 * @param otp
 	 * @param mobile Number
 	 * @return
 	 */
-	public void sendOTPtoMobile(int otp, long mobileNumber) {
+	public void sendOTPtoMobile(int otp, String mobileNumber) {
 		try {
 			String Text = props.getSmsFirstText() + " " + otp + " " + props.getSmsSecondText();
 			String smsResponse=iSmsRestService.SendSms(props.getSmsUserId(), props.getSmsPass(), props.getSmsAppId(),
-					props.getSmsSubAppId(), props.getSmsContentType(), String.valueOf(mobileNumber), props.getSmsFrom(),
+					props.getSmsSubAppId(), props.getSmsContentType(),mobileNumber, props.getSmsFrom(),
 					Text, props.getSmsSelfid(), props.getSmsAlert(), props.getSmsDlrReq());
-			commonMethods.storeSmsLog(Text,smsResponse,"sendClosureOTPtoMobile",mobileNumber);
+			commonMethods.storeSmsLog(Text,smsResponse,"sendClosureOTPtoMobile",Long.parseLong(mobileNumber));
 		} catch (Exception e) {
 
 			e.printStackTrace();

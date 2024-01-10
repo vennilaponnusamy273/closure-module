@@ -28,7 +28,7 @@ public class ClosureHelper {
 		try {
 			int otp = 0;
 			otp = commonMethods.generateOTP(Long.parseLong(mobileNo));
-			smsRestService.sendOTPtoMobile(otp,Long.parseLong(mobileNo));
+			smsRestService.sendOTPtoMobile(otp,mobileNo);
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(
