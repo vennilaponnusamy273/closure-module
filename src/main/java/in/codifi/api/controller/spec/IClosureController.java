@@ -83,5 +83,13 @@ public interface IClosureController {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@APIResponse(description = "Test")
 	Response getNsdlXml(@FormParam("msg") String msg);
+	
+	
+	@Path("/closureotp")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "Test")
+	ResponseModel closuremailotp(@NotNull @QueryParam("token") String Token);
 
 }

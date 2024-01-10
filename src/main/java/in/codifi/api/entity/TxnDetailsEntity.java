@@ -42,5 +42,11 @@ public class TxnDetailsEntity extends CommonEntity implements Serializable {
 	
 	@Column(name = "city")
 	private String city;
+	
+	@Column(name = "emailID")
+	private String emailID;
+	
+	@Column(name = "mobileNo")
+	private String mobileNo;
 
 }

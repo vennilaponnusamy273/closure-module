@@ -48,4 +48,5 @@ public class EkycConstants {
 	
 	public static final String SITE_URL_FILE = "https://trade.cholasecurities.com/home";
 	public static final String DOC_CLOSURE_ESIGN = "CLOSURE_ESIGN_DOCUMENT";
+	public static final String CLOSURE_EMAIL = "CLOSURE_EMAIL";
 }

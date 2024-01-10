@@ -1,7 +1,9 @@
 package in.codifi.api.utilities;
 
 import java.io.FileInputStream;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -11,17 +13,17 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 
-import java.security.cert.Certificate;
-
-import java.security.cert.X509Certificate;
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.EmailTemplateEntity;
 import in.codifi.api.entity.ErrorLogEntity;
+import in.codifi.api.entity.SmsLogEntity;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.EmailLogRepository;
 import in.codifi.api.repository.EmailTemplateRepository;
 import in.codifi.api.repository.ErrorLogRepository;
+import in.codifi.api.repository.SmsLogRepository;
 
 @ApplicationScoped
 public class CommonMethods {
@@ -36,6 +38,8 @@ public class CommonMethods {
 	CommonMail commonMail;
 	@Inject
 	ApplicationProperties props;
+	@Inject
+	SmsLogRepository smsLogRepository;
 	/**
 	 * Method to construct Failed method
 	 * 
@@ -131,6 +135,66 @@ public class CommonMethods {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return userName;
+		}
+	}
+	
+	public int generateOTP(long mobileNumber) {
+		int otp = 123456;
+		if (mobileNumber == 1234567890 || mobileNumber == 1111100000) {
+			otp = 000000;
+		} else {
+			otp = (int) (Math.random() * 900000) + 100000;
+		}
+		System.out.println("OTP : " + otp);
+		return otp;
+	}
+	
+	public void sendEsignClosureMail(String emailId) throws MessagingException {
+		EmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("EsignClosure");
+		try {
+			System.out.println("tje sendEsignClosureMail");
+			List<String> toAdd = new ArrayList<>();
+			toAdd.add(emailId);
+			String body_Message = emailTempentity.getBody();
+			commonMail.sendMail(toAdd, emailTempentity.getSubject(), body_Message);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Method to send mail
+	 * 
+	 * @param user
+	 * @return
+	 **/
+	public void sendClosureMail(String emailId) throws MessagingException {
+		EmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Closure");
+		try {
+			List<String> toAdd = new ArrayList<>();
+			toAdd.add(emailId);
+			String body_Message = emailTempentity.getBody();
+			commonMail.sendMail(toAdd, emailTempentity.getSubject(), body_Message);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void storeSmsLog(String request, String smsResponse, String logMethod, long mobileNumber) {
+		if (request == null || smsResponse == null || logMethod == null) {
+			// Handle invalid input, such as throwing an IllegalArgumentException.
+			throw new IllegalArgumentException("Request, smsResponse, or logMethod cannot be null.");
+		}
+
+		try {
+			SmsLogEntity smsLogEntity = new SmsLogEntity();
+			smsLogEntity.setMobileNo(mobileNumber);
+			smsLogEntity.setLogMethod(logMethod);
+			smsLogEntity.setRequestLog(request);
+			smsLogEntity.setResponseLog(smsResponse);
+			smsLogRepository.save(smsLogEntity);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

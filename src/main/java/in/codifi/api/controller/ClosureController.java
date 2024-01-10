@@ -126,4 +126,15 @@ public class ClosureController implements IClosureController {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.XML_MSG_NULL).build();
 		}
 	}
+
+	@Override
+	public ResponseModel closuremailotp(String Token) {
+		ResponseModel responseModel = new ResponseModel();
+		if (Token != null ) {
+			responseModel = closureService.closuremailotp(Token,"");
+		} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+		}
+		return responseModel;
+	}
 }

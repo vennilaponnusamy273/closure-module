@@ -68,6 +68,8 @@ public class Esign {
 				savingEntity.setDpId(DpID);
 				savingEntity.setUsername(clientBasicData.getNameAsperPan());
 				savingEntity.setCity(clientBasicData.getCity());
+				savingEntity.setEmailID(clientBasicData.getEmail());
+				savingEntity.setMobileNo(clientBasicData.getMobile());
 				TxnDetailsEntity savedEntity = txnDetailsRepository.save(savingEntity);
 				if (savedEntity != null) {
 					StringBuilder buff = new StringBuilder();

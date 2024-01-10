@@ -49,4 +49,7 @@ public interface IClosureService {
 
 	ResponseModel generateEsign(PdfApplicationDataModel pdfModel);
 
+
+	ResponseModel closuremailotp(String EmailID, String MobileNo);
+
 }

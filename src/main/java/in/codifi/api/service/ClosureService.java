@@ -12,9 +12,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -36,11 +38,13 @@ import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import in.codifi.api.cache.HazleCacheController;
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.ClosureNSDLandCSDLEntity;
 import in.codifi.api.entity.ClosurelogEntity;
 import in.codifi.api.entity.DocumentEntity;
 import in.codifi.api.entity.TxnDetailsEntity;
+import in.codifi.api.helper.ClosureHelper;
 import in.codifi.api.model.ClientBasicData;
 import in.codifi.api.model.DpResult;
 import in.codifi.api.model.FormDataModel;
@@ -80,6 +84,8 @@ public class ClosureService  implements IClosureService{//Closure
 	TxnDetailsRepository txnDetailsRepository;
 	@Inject
 	Esign esign;
+	@Inject
+	ClosureHelper closureHelper;
 
 	@Override
 	public ResponseModel CheckPositionHoldandfunds(String token) {
@@ -677,13 +683,11 @@ public class ClosureService  implements IClosureService{//Closure
 					String name = commonMethods
 							.readUserNameFromCerFile(detailsEntity.getFolderLocation() + slash + cerFile);
 					System.out.println(name);
-				//	ApplicationUserEntity userEntity = erpRestService.getUser(detailsEntity.getApplicationId());
 					if (detailsEntity != null) {
 						if (txnName != null && errorMessage != null && errorCode != null && !errorMessage.isEmpty()
 								&& !errorCode.isEmpty() && errorMessage.equalsIgnoreCase("NA")
 								&& errorCode.equalsIgnoreCase("NA")) {
 							String filePath = detailsEntity.getFolderLocation();
-							//AddressEntity entity = erpRestService.getaddress(detailsEntity.getApplicationId());
 							String resposne = esign.getSignFromNsdl(
 									props.getFileBasePath() + detailsEntity.getApplicationId() + slash
 											+ detailsEntity.getDpId()+ EkycConstants.PDF_EXTENSION,
@@ -694,16 +698,9 @@ public class ClosureService  implements IClosureService{//Closure
 								String esignedFileName =detailsEntity.getDpId() + "_signedFinal"
 										+ EkycConstants.PDF_EXTENSION;
 								String path = filePath + slash + esignedFileName;
-//								erpRestService.updateStage(detailsEntity.getApplicationId(),
-//										EkycConstants.PAGE_COMPLETED_EMAIL_ATTACHED);
-//								erpDocResService.updateStageEsign(detailsEntity.getApplicationId(),
-//										StringUtil.isNotNullOrEmpty(name) ? name : userEntity.getUserName(),
-//										StringUtil.isNotNullOrEmpty(name) ? name : userEntity.getUserName(),
-//										EkycConstants.PAGE_COMPLETED_EMAIL_ATTACHED, "Completed", "1", "1");
+								closureMail(detailsEntity.getEmailID());
 								saveEsignDocumntDetails(detailsEntity.getApplicationId(), path, esignedFileName);
 								java.net.URI finalPage = new java.net.URI(EkycConstants.SITE_URL_FILE);
-//								commonMail.sendMailWithFile(userEntity.getEmailId(), userEntity.getUserName(),
-//										"esign file", path);
 								Response.ResponseBuilder responseBuilder = Response
 										.status(Response.Status.MOVED_PERMANENTLY).location(finalPage);
 								return responseBuilder.build();
@@ -723,6 +720,21 @@ public class ClosureService  implements IClosureService{//Closure
 
 		return null;
 	}
+
+	private void closureMail(String emailID) throws MessagingException {
+		try {
+			if (emailID != null) {
+				commonMethods.sendEsignClosureMail(emailID);
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.sendErrorMail(
+					"An error occurred while processing your request, In closureMail for the Error: " + e.getMessage(),
+					"ERR-001");
+		}
+	}
+
+
 
 	private static String parseNSDLNameDetails(JSONObject xmlJSONObj) {
 		String response = "";
@@ -766,5 +778,32 @@ public class ClosureService  implements IClosureService{//Closure
 //		savepasswordProtectedFile(applicationId);
 	}
 
+
+
+	@Override
+	public ResponseModel closuremailotp(String EmailID,String MobileNo) {
+	    ResponseModel responseModel = new ResponseModel();
+	    try {
+	        if (MobileNo != null&&EmailID!=null) {
+	            commonMethods.sendClosureMail(EmailID);
+	            closureHelper.sendClosureOtp(MobileNo);
+	            if (responseModel != null) {
+	                responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	                responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+	            }
+	        }
+	    } catch (Exception e) {
+	        logger.error("An error occurred: " + e.getMessage());
+	        commonMethods.sendErrorMail(
+	                "An error occurred while processing your request, In sendMailOtp for the Error: " + e.getMessage(),
+	                "ERR-001");
+	        responseModel = commonMethods.constructFailedMsg(e.getMessage());
+	    }
+	    return responseModel;
+	}
+
+
+
+	
 	
 }
