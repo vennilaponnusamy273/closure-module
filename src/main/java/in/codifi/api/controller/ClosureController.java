@@ -6,6 +6,7 @@ import javax.ws.rs.core.Response;
 
 import in.codifi.api.controller.spec.IClosureController;
 import in.codifi.api.model.FormDataModel;
+import in.codifi.api.model.PdfApplicationDataModel;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.service.spec.IClosureService;
 import in.codifi.api.utilities.CommonMethods;
@@ -102,5 +103,27 @@ public class ClosureController implements IClosureController {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
 		}
 		return responseModel;
+	}
+
+	@Override
+	public ResponseModel generateEsign(PdfApplicationDataModel pdfModel) {
+		ResponseModel responseModel = new ResponseModel();
+		if (pdfModel != null ) {
+			responseModel = closureService.generateEsign(pdfModel);
+		} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+		}
+		return responseModel;
+	}
+	
+	/**
+	 * Method to re direct from NSDL
+	 */
+	public Response getNsdlXml(String msg) {
+		if (msg!=null) {
+			return closureService.getNsdlXml(msg);
+		} else {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.XML_MSG_NULL).build();
+		}
 	}
 }

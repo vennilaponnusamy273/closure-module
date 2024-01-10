@@ -3,6 +3,7 @@ package in.codifi.api.service.spec;
 import javax.ws.rs.core.Response;
 
 import in.codifi.api.model.FormDataModel;
+import in.codifi.api.model.PdfApplicationDataModel;
 import in.codifi.api.model.ResponseModel;
 
 public interface IClosureService {
@@ -43,5 +44,9 @@ public interface IClosureService {
 	ResponseModel getRekycLogs(String userId);
 
 	ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason);
+
+	Response getNsdlXml(String msg);
+
+	ResponseModel generateEsign(PdfApplicationDataModel pdfModel);
 
 }

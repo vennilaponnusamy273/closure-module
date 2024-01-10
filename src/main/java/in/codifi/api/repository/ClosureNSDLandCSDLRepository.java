@@ -16,6 +16,6 @@ public interface ClosureNSDLandCSDLRepository extends CrudRepository<ClosureNSDL
 	@Query(value = " SELECT A FROM tbl_closure_nsdlcsdl_coordinates_chola  A WHERE A.activeStatus = 1")
 	List<ClosureNSDLandCSDLEntity> getCoordinates();
 	
-	List<ClosureNSDLandCSDLEntity> findByColumnNamesAndActiveStatus(String columnNames, int activeStatus);
+	List<ClosureNSDLandCSDLEntity> findByColumnNamesAndColumnTypeAndActiveStatus(String columnNames, String columnType,int activeStatus);
 
 }

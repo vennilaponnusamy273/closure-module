@@ -24,5 +24,7 @@ public class MessageConstants {
 	public static final String POSITIONS_NOT_EXIST = "Positions Not Exits";
 	public static final String FUNDS_NOT_EXIST = "Funds Not Exits";
 	public static final String HOLDINGS_NOT_EXIST = "Holdings Not Exits";
+	public static final String ERROR_WHILE_CREATING_XML = "Error Occur While Creating XML file";
+	public static final String XML_MSG_NULL = "The XML MSG is Null";
 
 }

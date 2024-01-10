@@ -1,6 +1,7 @@
 package in.codifi.api.service;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -17,6 +18,8 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,23 +31,31 @@ import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.json.JSONObject;
+import org.json.XML;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.ClosureNSDLandCSDLEntity;
 import in.codifi.api.entity.ClosurelogEntity;
 import in.codifi.api.entity.DocumentEntity;
+import in.codifi.api.entity.TxnDetailsEntity;
 import in.codifi.api.model.ClientBasicData;
 import in.codifi.api.model.DpResult;
 import in.codifi.api.model.FormDataModel;
+import in.codifi.api.model.PdfApplicationDataModel;
 import in.codifi.api.model.ReKycResmodel;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosureNSDLandCSDLRepository;
 import in.codifi.api.repository.ClosurelogRepository;
 import in.codifi.api.repository.DocumentRepository;
+import in.codifi.api.repository.TxnDetailsRepository;
 import in.codifi.api.service.spec.IClosureService;
 import in.codifi.api.trading.restservice.tradingRestServices;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.EkycConstants;
+import in.codifi.api.utilities.Esign;
 import in.codifi.api.utilities.MessageConstants;
 import in.codifi.api.utilities.StringUtil;
 
@@ -65,6 +76,10 @@ public class ClosureService  implements IClosureService{//Closure
 	ClosureNSDLandCSDLRepository closureNSDLandCSDLRepository;
 	@Inject
 	ClosurelogRepository closurelogRepository;
+	@Inject
+	TxnDetailsRepository txnDetailsRepository;
+	@Inject
+	Esign esign;
 
 	@Override
 	public ResponseModel CheckPositionHoldandfunds(String token) {
@@ -608,6 +623,147 @@ public class ClosureService  implements IClosureService{//Closure
 	    responseModel.setResult(closurelogEntity);
 	    
 	    return responseModel;
+	}
+	@Override
+	public ResponseModel generateEsign(PdfApplicationDataModel pdfModel) {
+		ResponseModel model = null;
+		ClientBasicData clientBasicData = TradingRestServices.getUserDetails(pdfModel.getToken());
+		if (clientBasicData != null) {
+			GeneratePdf(pdfModel.getToken(),pdfModel.getDpId());
+		}
+		model = esign.runMethod(props.getFileBasePath(), pdfModel.getApplicationNo(),pdfModel.getToken(),pdfModel.getDpId());
+		return model;
+	}
+	
+	@Override
+	public Response getNsdlXml(String msg) {
+		String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
+		if (OS.contains(EkycConstants.OS_WINDOWS)) {
+			slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
+		}
+		try {
+			
+			int random = (int) (Math.random() * 900000) + 100000;
+//			commonMethods.generateOTP(9876543210l);
+			String fileName = "lastXml" + random + ".xml";
+			String cerFile = "usrCertificate" + random + ".cer";
+			File fXmlFile = new File(props.getFileBasePath() + "TempXMLFiles" + slash + fileName);
+			if (fXmlFile.createNewFile()) {
+				FileWriter myWriter = new FileWriter(fXmlFile);
+				myWriter.write(msg);
+				myWriter.close();
+				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+				Document doc = dBuilder.parse(fXmlFile);
+				doc.getDocumentElement().normalize();
+				Element eElement = doc.getDocumentElement();
+				String txnName = eElement.getAttribute("txn");
+				String errorMessage = eElement.getAttribute("errMsg");
+				String errorCode = eElement.getAttribute("errCode");
+				TxnDetailsEntity detailsEntity = txnDetailsRepository.findBytxnId(txnName);
+				if (detailsEntity != null && detailsEntity.getApplicationId() != null) {
+					File nameFile = new File(detailsEntity.getFolderLocation() + slash + cerFile);
+					if (nameFile.createNewFile()) {
+						JSONObject xmlJSONObj = XML.toJSONObject(msg);
+						String userCertificate = parseNSDLNameDetails(xmlJSONObj);
+						if (StringUtil.isNotNullOrEmpty(userCertificate)) {
+							FileWriter nameWriter = new FileWriter(nameFile);
+							nameWriter.append("-----BEGIN CERTIFICATE-----" + System.getProperty("line.separator"));
+							nameWriter.append(userCertificate + System.getProperty("line.separator"));
+							nameWriter.append("-----END CERTIFICATE-----");
+							nameWriter.close();
+						}
+					}
+					String name = commonMethods
+							.readUserNameFromCerFile(detailsEntity.getFolderLocation() + slash + cerFile);
+					System.out.println(name);
+				//	ApplicationUserEntity userEntity = erpRestService.getUser(detailsEntity.getApplicationId());
+					if (detailsEntity != null) {
+						if (txnName != null && errorMessage != null && errorCode != null && !errorMessage.isEmpty()
+								&& !errorCode.isEmpty() && errorMessage.equalsIgnoreCase("NA")
+								&& errorCode.equalsIgnoreCase("NA")) {
+							String filePath = detailsEntity.getFolderLocation();
+							//AddressEntity entity = erpRestService.getaddress(detailsEntity.getApplicationId());
+							String resposne = esign.getSignFromNsdl(
+									props.getFileBasePath() + detailsEntity.getApplicationId() + slash
+											+ detailsEntity.getDpId()+ EkycConstants.PDF_EXTENSION,
+									filePath, msg, detailsEntity.getUsername(),
+									detailsEntity.getCity(),
+									detailsEntity.getDpId());
+							if (StringUtil.isNotNullOrEmpty(resposne)) {
+								String esignedFileName =detailsEntity.getDpId() + "_signedFinal"
+										+ EkycConstants.PDF_EXTENSION;
+								String path = filePath + slash + esignedFileName;
+//								erpRestService.updateStage(detailsEntity.getApplicationId(),
+//										EkycConstants.PAGE_COMPLETED_EMAIL_ATTACHED);
+//								erpDocResService.updateStageEsign(detailsEntity.getApplicationId(),
+//										StringUtil.isNotNullOrEmpty(name) ? name : userEntity.getUserName(),
+//										StringUtil.isNotNullOrEmpty(name) ? name : userEntity.getUserName(),
+//										EkycConstants.PAGE_COMPLETED_EMAIL_ATTACHED, "Completed", "1", "1");
+								saveEsignDocumntDetails(detailsEntity.getApplicationId(), path, esignedFileName);
+								java.net.URI finalPage = new java.net.URI(EkycConstants.SITE_URL_FILE);
+//								commonMail.sendMailWithFile(userEntity.getEmailId(), userEntity.getUserName(),
+//										"esign file", path);
+								Response.ResponseBuilder responseBuilder = Response
+										.status(Response.Status.MOVED_PERMANENTLY).location(finalPage);
+								return responseBuilder.build();
+							} else {
+
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.sendErrorMail(
+					"An error occurred while processing your request. In getNsdlXml for the Error: " + e.getMessage(),
+					"ERR-001");
+		}
+
+		return null;
+	}
+
+	private static String parseNSDLNameDetails(JSONObject xmlJSONObj) {
+		String response = "";
+		try {
+			if (xmlJSONObj != null) {
+				if (xmlJSONObj.has("EsignResp")) {
+					JSONObject sEnvelope = xmlJSONObj.getJSONObject("EsignResp");
+					if (sEnvelope.has("UserX509Certificate")) {
+						response = sEnvelope.getString("UserX509Certificate");
+						return response;
+					}
+				} else {
+					response = null;
+				}
+			} else {
+				response = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+
+	}
+	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName) {
+		DocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
+				EkycConstants.DOC_CLOSURE_ESIGN);
+		if (oldEntity == null) {
+			DocumentEntity documentEntity = new DocumentEntity();
+			documentEntity.setApplicationId(applicationId);
+			documentEntity.setAttachementUrl(documentPath);
+			documentEntity.setAttachement(fileName);
+			documentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
+			documentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
+			docrepository.save(documentEntity);
+		} else {
+			oldEntity.setAttachementUrl(documentPath);
+			oldEntity.setAttachement(fileName);
+			docrepository.save(oldEntity);
+		}
+//		s3BucketHelper.UploadErp(applicationId, EkycConstants.DOC_CLOSURE_ESIGN, documentPath, "", "");
+//		savepasswordProtectedFile(applicationId);
 	}
 
 	

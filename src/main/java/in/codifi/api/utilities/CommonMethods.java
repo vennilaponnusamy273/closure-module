@@ -1,5 +1,7 @@
 package in.codifi.api.utilities;
 
+import java.io.FileInputStream;
+import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -10,6 +12,9 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.security.cert.Certificate;
+
+import java.security.cert.X509Certificate;
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.EmailTemplateEntity;
 import in.codifi.api.entity.ErrorLogEntity;
@@ -110,5 +115,22 @@ public class CommonMethods {
 			ex.printStackTrace();
 		}
 		return null;
+	}
+	
+	public String readUserNameFromCerFile(String certificateFilepath) {
+		String userName = "";
+		try (FileInputStream fis = new FileInputStream(certificateFilepath)) {
+			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+			Certificate cert = certFactory.generateCertificate(fis);
+			X509Certificate x509Cert = (X509Certificate) cert;
+			if (StringUtil.isNotNullOrEmpty(x509Cert.getSubjectDN().toString())) {
+				String subject = x509Cert.getSubjectDN().toString();
+				userName = StringUtil.substringAfter(subject, "CN=");
+			}
+			return userName;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return userName;
+		}
 	}
 }

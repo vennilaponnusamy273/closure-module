@@ -48,5 +48,20 @@ public class ApplicationProperties {
 	
 	@ConfigProperty(name = "appconfig.log.db.name")
 	String logDBName;
+	
+	@ConfigProperty(name = "appconfig.esign.pfx.userid")
+	String esignUserId;
+	@ConfigProperty(name = "appconfig.esign.pfx.password")
+	String esignPassword;
+	@ConfigProperty(name = "appconfig.esign.pfx.aspid")
+	String esignAspId;
+	@ConfigProperty(name = "appconfig.esign.pfx.alias")
+	String esignAlias;
+	@ConfigProperty(name = "appconfig.esign.pfx.location")
+	String esignLocation;
+	@ConfigProperty(name = "appconfig.esign.pfx.tickimage")
+	String esignTickImage;
+	@ConfigProperty(name = "appconfig.esign.return.url")
+	String eSignReturnUrl;
 
 }
