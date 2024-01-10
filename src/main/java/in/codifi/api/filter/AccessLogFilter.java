@@ -17,6 +17,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -82,6 +83,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 						String applicationId = findApplicationId(queryParameters);
 						accessLogModel.setApplicationId(applicationId);
 					} else {
+						if (!MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(requestContext.getMediaType())) {
 						String requestBody = (String) requestContext.getProperty(EkycConstants.CONST_REQ_BODY);
 						accessLogModel.setReqBody(requestBody);
 						try {
@@ -99,7 +101,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 						} catch (JsonProcessingException e) {
 							System.out.println("Error parsing JSON: " + e.getMessage());
 						}
-					}
+					}}
 					Object reponseObj = responseContext.getEntity();
 					accessLogModel.setResBody(objMapper.writeValueAsString(reponseObj));
 					accessLogModel.setUri(uriInfo.getPath().toString());
@@ -109,7 +111,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 							: "EKYC");
 					Long thredId = Thread.currentThread().getId();
 					accessLogManager.insertAccessLogsIntoDB(accessLogModel);
-				} catch (Exception e) {
+				}catch (Exception e) {
 					e.printStackTrace();
 				}
 			}

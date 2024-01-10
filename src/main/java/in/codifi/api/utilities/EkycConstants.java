@@ -3,6 +3,7 @@ package in.codifi.api.utilities;
 public class EkycConstants {
 
 	public static final String CMR_COPY = "CMR_COPY";
+	public static final String CLOSURE_SIGN = "CLOSURE_SIGNATURE";
 	
 	public static final int FAILED_STATUS = 0;
 	public static final int SUCCESS_STATUS = 1;

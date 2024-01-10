@@ -35,6 +35,4 @@ public class FormDataModel implements Serializable {
 	@FormParam(value = "typeOfProof")
 	private String typeOfProof;
 
-	@FormParam(value = "password")
-	private String password;
 }

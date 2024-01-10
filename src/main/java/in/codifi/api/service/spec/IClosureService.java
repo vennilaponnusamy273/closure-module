@@ -5,7 +5,7 @@ import javax.ws.rs.core.Response;
 import in.codifi.api.model.FormDataModel;
 import in.codifi.api.model.ResponseModel;
 
-public interface IClosureoService {
+public interface IClosureService {
 
 	/**
 	 * method to CheckPositionHoldandfunds 

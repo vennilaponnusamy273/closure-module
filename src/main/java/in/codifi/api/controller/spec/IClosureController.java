@@ -31,9 +31,8 @@ public interface IClosureController {
 	 */
 	@Path("/upload")
 	@POST
-	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@APIResponse(description = "Method to Upload CMR Documnt")
+	@APIResponse(description = "Method to Upload CMR Document")
 	ResponseModel uploadCmrCopy(@MultipartForm FormDataModel fileModel);
 
 	

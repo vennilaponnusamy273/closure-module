@@ -1,6 +1,7 @@
 package in.codifi.api.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +41,7 @@ import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosureNSDLandCSDLRepository;
 import in.codifi.api.repository.ClosurelogRepository;
 import in.codifi.api.repository.DocumentRepository;
-import in.codifi.api.service.spec.IClosureoService;
+import in.codifi.api.service.spec.IClosureService;
 import in.codifi.api.trading.restservice.tradingRestServices;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.EkycConstants;
@@ -48,10 +49,10 @@ import in.codifi.api.utilities.MessageConstants;
 import in.codifi.api.utilities.StringUtil;
 
 @ApplicationScoped
-public class ClosureoService  implements IClosureoService{
+public class ClosureService  implements IClosureService{//Closure
 	
 	private static String OS = System.getProperty("os.name").toLowerCase();
-	private static final Logger logger = LogManager.getLogger(ClosureoService.class);
+	private static final Logger logger = LogManager.getLogger(ClosureService.class);
 	@Inject 
 	tradingRestServices TradingRestServices;
 	@Inject
@@ -80,9 +81,10 @@ public class ClosureoService  implements IClosureoService{
 	        reKycResmodel.setPositions(positionStatus);
 	        if (positionStatus) {
 	            reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_EXIST);
+	            saveRekycLog(token, reKycResmodel);
 	            response.setResult(reKycResmodel);
 	        } else {
-	            // Check Funds
+	        	reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_NOT_EXIST);
 	            fundsStatus = TradingRestServices.getFunds(authToken);
 	            reKycResmodel.setFunds(fundsStatus);
 	            if (fundsStatus) {
@@ -90,7 +92,7 @@ public class ClosureoService  implements IClosureoService{
 	                saveRekycLog(token, reKycResmodel);
 	                response.setResult(reKycResmodel);
 	            } else {
-	                // Check Holdings
+	            	reKycResmodel.setFunds_remarks(MessageConstants.FUNDS_NOT_EXIST);
 	                holdingsStatus = TradingRestServices.getHoldings(authToken);
 	                reKycResmodel.setHoldings(holdingsStatus);
 	                if (holdingsStatus) {
@@ -101,21 +103,26 @@ public class ClosureoService  implements IClosureoService{
 	                        if (oldRecord != null) {
 	                            reKycResmodel.setHoldings(false);
 	                            reKycResmodel.setHoldings_remarks(MessageConstants.CMR_AVAILABLE);
-	                            // Set the result based on your logic when CMR exists
-	                            response.setResult(getDpDetails(token));
+	                            response.setStat(EkycConstants.SUCCESS_STATUS);
+	                            response.setMessage(EkycConstants.SUCCESS_MSG);
+	                            response.setResult(reKycResmodel);
+	                            saveRekycLog(token, reKycResmodel);
 	                        } else {
 	                            reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_EXIST);
 	                            response.setResult(reKycResmodel);
+	                            saveRekycLog(token, reKycResmodel);
 	                        }
 	                    }
-	                    saveRekycLog(token, reKycResmodel);
+	                    
 	                }
 	            }
 	            if (!positionStatus && !fundsStatus && !holdingsStatus) {
 	                // All statuses are false, set a common remark or message
 	            	 saveRekycLog(token, reKycResmodel);
-	            	response.setReason("No positions, funds, or holdings available.");
-	                response.setResult(reKycResmodel);
+	            	 response.setStat(EkycConstants.SUCCESS_STATUS);
+	            	 response.setMessage(EkycConstants.SUCCESS_MSG);
+	            	 response.setReason(MessageConstants.NOT_AVAILABLE_POSITIONS);
+	            	 response.setResult(reKycResmodel);
 	            }
 	        }
 	    } catch (Exception e) {
@@ -140,11 +147,9 @@ public class ClosureoService  implements IClosureoService{
 	        	closurelogEntity = new ClosurelogEntity();
 	        	closurelogEntity.setUserId(clientBasicData.getTermCode());
 	        }
-	        // Assuming that isPositions(), isHoldings(), and isFunds() return boolean values
 	        closurelogEntity.setPosition(reKycResmodel.isPositions());
 	        closurelogEntity.setHoldings(reKycResmodel.isHoldings());
 	        closurelogEntity.setFunds(reKycResmodel.isFunds());
-
 	        closurelogRepository.save(closurelogEntity);
 	    } catch (Exception e) {
 	        e.printStackTrace();
@@ -209,33 +214,28 @@ public class ClosureoService  implements IClosureoService{
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
-			if (fileModel.getApplicationId() != null  && fileModel.getFile() != null
+			if (fileModel.getApplicationId()!=null  && fileModel.getFile() != null
 					&& StringUtil.isNotNullOrEmpty(fileModel.getFile().contentType())) {
 				System.out.println("the UploadCMR service1");
 				boolean content = (fileModel.getFile().contentType().equals(EkycConstants.CONST_APPLICATION_PDF));
-				if (content) {
-					String fileName = fileModel.getApplicationId() + EkycConstants.UNDERSCORE
-							+ fileModel.getTypeOfProof() + EkycConstants.PDF_EXTENSION;
-					String totalFileName = props.getFileBasePath() + fileModel.getApplicationId() + slash + fileName;
-					Path path = fileModel.getFile().filePath();
-					String errorMsg = checkPasswordProtected(fileModel);
-					if (StringUtil.isNullOrEmpty(errorMsg)) {
-						PDDocument document = PDDocument.load(new File(path.toString()), fileModel.getPassword());
-						document.getClass();
-						if (document.isEncrypted()) {
-							document.setAllSecurityToBeRemoved(true);
-							document.save(totalFileName);
-							document.close();
-							responseModel = saveDoc(fileModel, fileName, totalFileName,fileModel.getApplicationId());
-						} else {
-							document.save(totalFileName);
-							document.close();
-							responseModel = saveDoc(fileModel, fileName, totalFileName,fileModel.getApplicationId());
-						}
-					} else {
-						return commonMethods.constructFailedMsg(errorMsg);
-					}
-				} else if (!content) {
+				 if (content) {
+		                String fileName = fileModel.getApplicationId() + EkycConstants.UNDERSCORE
+		                        + fileModel.getTypeOfProof() + EkycConstants.PDF_EXTENSION;
+		                String totalFileName = props.getFileBasePath() + fileModel.getApplicationId() + slash + fileName;
+		                Path path = fileModel.getFile().filePath();
+		                PDDocument document = PDDocument.load(new File(path.toString()));
+		                try {
+		                    // document.getClass();
+		                    if (document.isEncrypted()) {
+		                        return commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
+		                    } else {
+		                        document.save(totalFileName);
+		                        responseModel = saveDoc(fileModel, fileName, totalFileName,fileModel.getApplicationId(), fileModel.getDocumentType());
+		                    }
+		                } finally {
+		                    document.close();
+		                }
+		            } else if (!content) {
 					String errorMsg = checkValidate(fileModel);
 					if (StringUtil.isNullOrEmpty(errorMsg)) {
 						FileUpload f = fileModel.getFile();
@@ -248,7 +248,7 @@ public class ClosureoService  implements IClosureoService{
 							Files.delete(path);
 						}
 						Files.copy(fileModel.getFile().filePath(), path);
-						responseModel = saveDoc(fileModel, fileName, filePath,fileModel.getApplicationId());
+						responseModel = saveDoc(fileModel, fileName, filePath,fileModel.getApplicationId(),fileModel.getDocumentType());
 					} else {
 						return commonMethods.constructFailedMsg(errorMsg);
 					}
@@ -263,20 +263,23 @@ public class ClosureoService  implements IClosureoService{
 					responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
 				}
 			}
-		} catch (Exception e) {
-			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request ClosureoService, In UploadCMR for the Error: " + e.getMessage(),
-					"ERR-001");
-			responseModel = commonMethods.constructFailedMsg(e.getMessage());
+		 } catch (Exception e) {
+		        if (!(e instanceof IOException )) {
+		            // Log and send email only if it's not an expected PDF encryption issue
+		            logger.error("An error occurred: " + e.getMessage());
+		            commonMethods.sendErrorMail(
+		                    "An error occurred while processing your request ClosureoService, In UploadCMR for the Error: " + e.getMessage(),
+		                    "ERR-001");
+		        }
+		        responseModel = commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
+		    }
+		    return responseModel;
 		}
-		return responseModel;
-	}
 
 	public String checkPasswordProtected(FormDataModel fileModel) {
 		String error = "";
 		Path path = fileModel.getFile().filePath();
-		PDDocument document = PDDocument.load(new File(path.toString()), fileModel.getPassword());
+		PDDocument document = PDDocument.load(new File(path.toString()));
 		if (document.isEncrypted()) {
 			document.setAllSecurityToBeRemoved(true);
 			document.close();
@@ -288,16 +291,14 @@ public class ClosureoService  implements IClosureoService{
 	}
 	
 	public String checkValidate(FormDataModel data) {
-	    List<String> mimetype = Arrays.asList("image/jpg", "image/jpeg", "image/gif", "image/png");
-
+	    List<String> mimetype = Arrays.asList("image/jpg", "image/jpeg","image/png");
 	    if (!mimetype.contains(data.getFile().contentType())) {
 	        return "File not supported";
 	    }
-
 	    return "";
 	}
 
-	public ResponseModel saveDoc(FormDataModel data, String fileName, String filePath,String userId) {
+	public ResponseModel saveDoc(FormDataModel data, String fileName, String filePath,String userId,String docType) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
@@ -309,23 +310,21 @@ public class ClosureoService  implements IClosureoService{
 					data.getDocumentType());
 			if (oldRecord != null) {
 				oldRecord.setAttachement(fileName);
-				oldRecord.setDocumentType(EkycConstants.CMR_COPY);
+				oldRecord.setDocumentType(docType);
 				if (StringUtil.isNotNullOrEmpty(data.getTypeOfProof())) {
 					oldRecord.setTypeOfProof(data.getTypeOfProof());
 				}
 				oldRecord.setAttachementUrl(props.getFileBasePath() + data.getApplicationId() + slash + fileName);
-				oldRecord.setPassword(data.getPassword());
 				updatedDocEntity = docrepository.save(oldRecord);
 			} else {
 				DocumentEntity doc = new DocumentEntity();
 				doc.setApplicationId(data.getApplicationId());
-				doc.setDocumentType(EkycConstants.CMR_COPY);
+				doc.setDocumentType(docType);
 				doc.setAttachement(fileName);
 				if (StringUtil.isNotNullOrEmpty(data.getTypeOfProof())) {
 					doc.setTypeOfProof(data.getTypeOfProof());
 				}
 				doc.setAttachementUrl(props.getFileBasePath() + data.getApplicationId() + slash + fileName);
-				doc.setPassword(data.getPassword());
 				updatedDocEntity = docrepository.save(doc);
 			}
 			if (updatedDocEntity != null) {
@@ -380,7 +379,7 @@ public class ClosureoService  implements IClosureoService{
 	            List<ClosureNSDLandCSDLEntity> pdfDatas = closureNSDLandCSDLRepository.getCoordinates();
 	            pdfInsertCoordinates(document, pdfDatas, map, clientBasicData);
 
-	            String fileName = clientBasicData.getTermCode() + EkycConstants.PDF_EXTENSION;
+	            String fileName = dpId + EkycConstants.PDF_EXTENSION;
 	            document.save(outputPath + slash + fileName);
 	            document.close();
 
@@ -390,16 +389,17 @@ public class ClosureoService  implements IClosureoService{
 	            ResponseBuilder response = Response.ok((Object) savedFile);
 				response.type(contentType);
 				response.header("Content-Disposition", "attachment;filename=" + savedFile.getName());
+				return response.build();
 	        } else {
 	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
 	                    .entity(MessageConstants.USER_ID_INVALID).build();
 	        }
 	    } catch (Exception e) {
 	        e.printStackTrace(); // Handle exceptions properly in a production environment
-	        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-	                .entity(MessageConstants.FILE_NOT_FOUND).build();
+	        
 	    }
-	    return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND).build();
+	    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(MessageConstants.FILE_NOT_FOUND).build();
 	}
 
 
