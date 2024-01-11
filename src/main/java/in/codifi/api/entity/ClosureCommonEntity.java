@@ -13,7 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @MappedSuperclass
-public class CommonEntity {
+public class ClosureCommonEntity {
 
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Column(name = "created_on", insertable = true, updatable = false)

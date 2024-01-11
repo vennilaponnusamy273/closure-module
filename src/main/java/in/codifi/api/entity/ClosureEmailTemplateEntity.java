@@ -14,31 +14,35 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity(name = "tbl_email_Log_details")
-public class EmailLogEntity extends CommonEntity implements Serializable {
+@Entity(name = "tbl_closure_email_template")
+public class ClosureEmailTemplateEntity extends ClosureCommonEntity implements Serializable {
 
+	/**
+	 * 
+	 */
 	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-	
-	
-	@Column(name = "email_id")
-	private String emailId;
-	
+
 	@Lob
-	@Column(name = "reqLog")
-	private String reqLog;
+	@Column(name = "body")
+	private String body;
+
+	@Column(name = "subject")
+	private String subject;
+
+	@Column(name = "keyData") // escaping "key" with backticks
+	private String keyData;
+
+	@Column(name = "value")
+	private Long value;
 	
-	@Lob
-	@Column(name = "reqLogSub")
-	private String reqLogSub;
+	@Column(name = "cc")
+	private String cc;
 	
-	@Lob
-	@Column(name = "responseLog")
-	private String responseLog;
-	
-	@Column(name = "logMethod")
-	private String logMethod;
+	@Column(name = "toAddress")
+	private String toAddress;
 }

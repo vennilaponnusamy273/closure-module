@@ -5,13 +5,13 @@ import java.sql.Timestamp;
 
 import javax.persistence.Lob;
 
-import in.codifi.api.entity.CommonEntity;
+import in.codifi.api.entity.ClosureCommonEntity;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class AccessLogModel  extends CommonEntity implements Serializable {
+public class AccessLogModel  extends ClosureCommonEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

@@ -11,8 +11,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity(name = "tbl_Error_log")
-public class ErrorLogEntity extends CommonEntity{
+@Entity(name = "tbl_closure_Error_log")
+public class ClosureErrorLogEntity extends ClosureCommonEntity{
 
 	
 	

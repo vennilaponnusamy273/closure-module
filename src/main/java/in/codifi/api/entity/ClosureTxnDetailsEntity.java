@@ -13,8 +13,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity(name = "tbl_txn_details")
-public class TxnDetailsEntity extends CommonEntity implements Serializable {
+@Entity(name = "tbl_closure_txn_details")
+public class ClosureTxnDetailsEntity extends ClosureCommonEntity implements Serializable {
 
 	/**
 	 * 

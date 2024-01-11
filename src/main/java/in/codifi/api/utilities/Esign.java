@@ -10,17 +10,20 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 import com.nsdl.esign.preverifiedNo.controller.EsignApplication;
+
 import in.codifi.api.config.ApplicationProperties;
 import in.codifi.api.entity.ClosureNSDLandCSDLEntity;
-import in.codifi.api.entity.TxnDetailsEntity;
+import in.codifi.api.entity.ClosureTxnDetailsEntity;
 import in.codifi.api.model.ClientBasicData;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosureNSDLandCSDLRepository;
-import in.codifi.api.repository.TxnDetailsRepository;
+import in.codifi.api.repository.ClosureTxnDetailsRepository;
 import in.codifi.api.trading.restservice.tradingRestServices;
 import io.smallrye.common.constraint.NotNull;
 
@@ -33,7 +36,7 @@ public class Esign {
 	@Inject
 	ApplicationProperties props;
 	@Inject
-	TxnDetailsRepository txnDetailsRepository;
+	ClosureTxnDetailsRepository txnDetailsRepository;
 	@Inject
 	CommonMethods commonMethods;
 	@Inject
@@ -61,7 +64,7 @@ public class Esign {
 			toCreateNewXMLFile(filePath, getXml);
 			String txnId = toGetTxnFromXMlpath(filePath + slash + "FirstResponse.xml");
 			if (StringUtil.isNotNullOrEmpty(txnId)) {
-				TxnDetailsEntity savingEntity = new TxnDetailsEntity();
+				ClosureTxnDetailsEntity savingEntity = new ClosureTxnDetailsEntity();
 				savingEntity.setApplicationId(applicationId);
 				savingEntity.setTxnId(txnId);
 				savingEntity.setFolderLocation(filePath);
@@ -70,7 +73,7 @@ public class Esign {
 				savingEntity.setCity(clientBasicData.getCity());
 				savingEntity.setEmailID(clientBasicData.getEmail());
 				savingEntity.setMobileNo(clientBasicData.getMobile());
-				TxnDetailsEntity savedEntity = txnDetailsRepository.save(savingEntity);
+				ClosureTxnDetailsEntity savedEntity = txnDetailsRepository.save(savingEntity);
 				if (savedEntity != null) {
 					StringBuilder buff = new StringBuilder();
 					buff.append(getXml);
@@ -188,6 +191,8 @@ public class Esign {
 			String applicantName, String city, String DPId) {
 		String responseText = null;
 		try {
+			System.out.println("the documentLocation"+documentLocation);
+			System.out.println("the documentToBeSavedLocation"+documentToBeSavedLocation);
 			String pathToPDF = documentLocation;
 			String tickImagePath = props.getEsignTickImage();
 			int serverTime = 0;//	

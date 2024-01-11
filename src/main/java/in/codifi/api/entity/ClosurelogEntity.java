@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity(name = "tbl_closure_log")
-public class ClosurelogEntity extends CommonEntity{
+public class ClosurelogEntity extends ClosureCommonEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -49,7 +49,8 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 	@Inject
 	AccessLogManager accessLogManager;
 	private static final List<String> disablepaths = Arrays.asList(EkycConstants.PAGE_POSITION,
-			EkycConstants.PAGE_CLOSUREUPLOAD, EkycConstants.PAGE_CLOSURELOG, EkycConstants.PAGE_DP);
+			EkycConstants.PAGE_CLOSUREUPLOAD, EkycConstants.PAGE_CLOSURELOG, EkycConstants.PAGE_DP,
+			EkycConstants.PAGE_NSDL);
 
 	/**
 	 * Method to capture and single save request and response
@@ -84,24 +85,25 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 						accessLogModel.setApplicationId(applicationId);
 					} else {
 						if (!MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(requestContext.getMediaType())) {
-						String requestBody = (String) requestContext.getProperty(EkycConstants.CONST_REQ_BODY);
-						accessLogModel.setReqBody(requestBody);
-						try {
-							JsonNode jsonNode = objMapper.readTree(requestBody);
-							String sid = jsonNode.path("sid").asText(null);
-							String applicationId = jsonNode.path("applicationId").asText(null);
-							String mobileNo = jsonNode.path("mobileNo").asText(null);
-							if (sid != null) {
-								accessLogModel.setApplicationId(sid);
-							} else if (applicationId != null) {
-								accessLogModel.setApplicationId(applicationId);
-							} else if (mobileNo != null) {
-								accessLogModel.setApplicationId(mobileNo);
+							String requestBody = (String) requestContext.getProperty(EkycConstants.CONST_REQ_BODY);
+							accessLogModel.setReqBody(requestBody);
+							try {
+								JsonNode jsonNode = objMapper.readTree(requestBody);
+								String sid = jsonNode.path("sid").asText(null);
+								String applicationId = jsonNode.path("applicationId").asText(null);
+								String mobileNo = jsonNode.path("mobileNo").asText(null);
+								if (sid != null) {
+									accessLogModel.setApplicationId(sid);
+								} else if (applicationId != null) {
+									accessLogModel.setApplicationId(applicationId);
+								} else if (mobileNo != null) {
+									accessLogModel.setApplicationId(mobileNo);
+								}
+							} catch (JsonProcessingException e) {
+								System.out.println("Error parsing JSON: " + e.getMessage());
 							}
-						} catch (JsonProcessingException e) {
-							System.out.println("Error parsing JSON: " + e.getMessage());
 						}
-					}}
+					}
 					Object reponseObj = responseContext.getEntity();
 					accessLogModel.setResBody(objMapper.writeValueAsString(reponseObj));
 					accessLogModel.setUri(uriInfo.getPath().toString());
@@ -111,7 +113,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 							: "EKYC");
 					Long thredId = Thread.currentThread().getId();
 					accessLogManager.insertAccessLogsIntoDB(accessLogModel);
-				}catch (Exception e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}

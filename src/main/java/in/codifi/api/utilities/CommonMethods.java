@@ -16,30 +16,30 @@ import javax.inject.Inject;
 import javax.mail.MessagingException;
 
 import in.codifi.api.config.ApplicationProperties;
-import in.codifi.api.entity.EmailTemplateEntity;
-import in.codifi.api.entity.ErrorLogEntity;
-import in.codifi.api.entity.SmsLogEntity;
+import in.codifi.api.entity.ClosureEmailTemplateEntity;
+import in.codifi.api.entity.ClosureErrorLogEntity;
+import in.codifi.api.entity.ClosureSmsLogEntity;
 import in.codifi.api.model.ResponseModel;
-import in.codifi.api.repository.EmailLogRepository;
-import in.codifi.api.repository.EmailTemplateRepository;
-import in.codifi.api.repository.ErrorLogRepository;
-import in.codifi.api.repository.SmsLogRepository;
+import in.codifi.api.repository.ClosureEmailLogRepository;
+import in.codifi.api.repository.ClosureEmailTemplateRepository;
+import in.codifi.api.repository.ClosureErrorLogRepository;
+import in.codifi.api.repository.ClosureSmsLogRepository;
 
 @ApplicationScoped
 public class CommonMethods {
 
 	@Inject
-	EmailLogRepository emailLogRepository;
+	ClosureEmailLogRepository emailLogRepository;
 	@Inject
-	EmailTemplateRepository emailTemplateRepository;
+	ClosureEmailTemplateRepository emailTemplateRepository;
 	@Inject
-	ErrorLogRepository errorLogRepository;
+	ClosureErrorLogRepository errorLogRepository;
 	@Inject
 	CommonMail commonMail;
 	@Inject
 	ApplicationProperties props;
 	@Inject
-	SmsLogRepository smsLogRepository;
+	ClosureSmsLogRepository smsLogRepository;
 	/**
 	 * Method to construct Failed method
 	 * 
@@ -64,7 +64,7 @@ public class CommonMethods {
 	 * @param errorCode
 	 */
 	public void sendErrorMail(String errorMessage, String errorCode) {
-		EmailTemplateEntity emailTemplateEntity = emailTemplateRepository.findByKeyData("error");
+		ClosureEmailTemplateEntity emailTemplateEntity = emailTemplateRepository.findByKeyData("error");
 		if (emailTemplateEntity != null && emailTemplateEntity.getBody() != null
 				&& emailTemplateEntity.getSubject() != null && emailTemplateEntity.getToAddress() != null) {
 			List<String> toAdd = new ArrayList<>();
@@ -92,10 +92,10 @@ public class CommonMethods {
 	 * @param reason
 	 */
 	public void SaveLog(String applicationId, String className, String methodName, String reason) {
-		ErrorLogEntity errorLogEntity = errorLogRepository.findByApplicationIdAndClassNameAndMethodName(applicationId,
+		ClosureErrorLogEntity errorLogEntity = errorLogRepository.findByApplicationIdAndClassNameAndMethodName(applicationId,
 				className, methodName);
 		if (errorLogEntity == null) {
-			errorLogEntity = new ErrorLogEntity();
+			errorLogEntity = new ClosureErrorLogEntity();
 			errorLogEntity.setApplicationId(applicationId);
 			errorLogEntity.setClassName(className);
 			errorLogEntity.setMethodName(methodName);
@@ -150,7 +150,7 @@ public class CommonMethods {
 	}
 	
 	public void sendEsignClosureMail(String emailId) throws MessagingException {
-		EmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("EsignClosure");
+		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("EsignClosure");
 		try {
 			System.out.println("tje sendEsignClosureMail");
 			List<String> toAdd = new ArrayList<>();
@@ -169,7 +169,7 @@ public class CommonMethods {
 	 * @return
 	 **/
 	public void sendClosureMail(String emailId) throws MessagingException {
-		EmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Closure");
+		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Closure");
 		try {
 			List<String> toAdd = new ArrayList<>();
 			toAdd.add(emailId);
@@ -187,7 +187,7 @@ public class CommonMethods {
 		}
 
 		try {
-			SmsLogEntity smsLogEntity = new SmsLogEntity();
+			ClosureSmsLogEntity smsLogEntity = new ClosureSmsLogEntity();
 			smsLogEntity.setMobileNo(mobileNumber);
 			smsLogEntity.setLogMethod(logMethod);
 			smsLogEntity.setRequestLog(request);

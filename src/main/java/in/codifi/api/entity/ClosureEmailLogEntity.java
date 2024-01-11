@@ -14,8 +14,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Entity(name = "tbl_smslog_details")
-public class SmsLogEntity extends CommonEntity implements Serializable {
+@Entity(name = "tbl_closure_email_Log_details")
+public class ClosureEmailLogEntity extends ClosureCommonEntity implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	@Id
@@ -23,12 +23,17 @@ public class SmsLogEntity extends CommonEntity implements Serializable {
 	@Column(name = "id")
 	private Long id;
 	
-	@Column(name = "mobile_number")
-	private Long mobileNo;
+	
+	@Column(name = "email_id")
+	private String emailId;
 	
 	@Lob
-	@Column(name = "requestLog")
-	private String  requestLog;
+	@Column(name = "reqLog")
+	private String reqLog;
+	
+	@Lob
+	@Column(name = "reqLogSub")
+	private String reqLogSub;
 	
 	@Lob
 	@Column(name = "responseLog")

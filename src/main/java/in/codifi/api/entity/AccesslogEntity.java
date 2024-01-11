@@ -15,7 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity(name = "tbl_access_log")
-public class AccesslogEntity extends CommonEntity implements Serializable {
+public class AccesslogEntity extends ClosureCommonEntity implements Serializable {
 
 	/**
 	 * 

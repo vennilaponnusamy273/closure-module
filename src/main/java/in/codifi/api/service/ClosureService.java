@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -38,12 +37,11 @@ import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import in.codifi.api.cache.HazleCacheController;
 import in.codifi.api.config.ApplicationProperties;
+import in.codifi.api.entity.ClosureDocumentEntity;
 import in.codifi.api.entity.ClosureNSDLandCSDLEntity;
+import in.codifi.api.entity.ClosureTxnDetailsEntity;
 import in.codifi.api.entity.ClosurelogEntity;
-import in.codifi.api.entity.DocumentEntity;
-import in.codifi.api.entity.TxnDetailsEntity;
 import in.codifi.api.helper.ClosureHelper;
 import in.codifi.api.model.ClientBasicData;
 import in.codifi.api.model.DpResult;
@@ -51,10 +49,10 @@ import in.codifi.api.model.FormDataModel;
 import in.codifi.api.model.PdfApplicationDataModel;
 import in.codifi.api.model.ReKycResmodel;
 import in.codifi.api.model.ResponseModel;
+import in.codifi.api.repository.ClosureDocumentRepository;
 import in.codifi.api.repository.ClosureNSDLandCSDLRepository;
+import in.codifi.api.repository.ClosureTxnDetailsRepository;
 import in.codifi.api.repository.ClosurelogRepository;
-import in.codifi.api.repository.DocumentRepository;
-import in.codifi.api.repository.TxnDetailsRepository;
 import in.codifi.api.service.spec.IClosureService;
 import in.codifi.api.trading.restservice.tradingRestServices;
 import in.codifi.api.utilities.CommonMethods;
@@ -75,13 +73,13 @@ public class ClosureService  implements IClosureService{//Closure
 	@Inject
 	ApplicationProperties props;
 	@Inject
-	DocumentRepository docrepository;
+	ClosureDocumentRepository docrepository;
 	@Inject
 	ClosureNSDLandCSDLRepository closureNSDLandCSDLRepository;
 	@Inject
 	ClosurelogRepository closurelogRepository;
 	@Inject
-	TxnDetailsRepository txnDetailsRepository;
+	ClosureTxnDetailsRepository txnDetailsRepository;
 	@Inject
 	Esign esign;
 	@Inject
@@ -119,9 +117,9 @@ public class ClosureService  implements IClosureService{//Closure
 	                if (holdingsStatus) {
 	                    ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
 	                    if (clientBasicData != null) {
-	                        DocumentEntity oldRecord = docrepository
+	                        ClosureDocumentEntity oldRecord = docrepository
 	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CMR_COPY);
-	                        DocumentEntity oldRecordsign = docrepository
+	                        ClosureDocumentEntity oldRecordsign = docrepository
 	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CLOSURE_SIGN);
 	                        if (oldRecord != null&&oldRecordsign!=null) {
 	                            reKycResmodel.setHoldings(false);
@@ -137,6 +135,8 @@ public class ClosureService  implements IClosureService{//Closure
 	                        }
 	                    }
 	                    
+	                }else {
+	                	reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_NOT_EXIST);;
 	                }
 	            }
 	            if (!positionStatus && !fundsStatus && !holdingsStatus) {
@@ -328,8 +328,8 @@ public class ClosureService  implements IClosureService{//Closure
 			if (OS.contains(EkycConstants.OS_WINDOWS)) {
 				slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
 			}
-			DocumentEntity updatedDocEntity = null;
-			DocumentEntity oldRecord = docrepository.findByApplicationIdAndDocumentType(data.getApplicationId(),
+			ClosureDocumentEntity updatedDocEntity = null;
+			ClosureDocumentEntity oldRecord = docrepository.findByApplicationIdAndDocumentType(data.getApplicationId(),
 					data.getDocumentType());
 			if (oldRecord != null) {
 				oldRecord.setAttachement(fileName);
@@ -340,7 +340,7 @@ public class ClosureService  implements IClosureService{//Closure
 				oldRecord.setAttachementUrl(props.getFileBasePath() + data.getApplicationId() + slash + fileName);
 				updatedDocEntity = docrepository.save(oldRecord);
 			} else {
-				DocumentEntity doc = new DocumentEntity();
+				ClosureDocumentEntity doc = new ClosureDocumentEntity();
 				doc.setApplicationId(data.getApplicationId());
 				doc.setDocumentType(docType);
 				doc.setAttachement(fileName);
@@ -668,7 +668,7 @@ public class ClosureService  implements IClosureService{//Closure
 				String txnName = eElement.getAttribute("txn");
 				String errorMessage = eElement.getAttribute("errMsg");
 				String errorCode = eElement.getAttribute("errCode");
-				TxnDetailsEntity detailsEntity = txnDetailsRepository.findBytxnId(txnName);
+				ClosureTxnDetailsEntity detailsEntity = txnDetailsRepository.findBytxnId(txnName);
 				if (detailsEntity != null && detailsEntity.getApplicationId() != null) {
 					File nameFile = new File(detailsEntity.getFolderLocation() + slash + cerFile);
 					if (nameFile.createNewFile()) {
@@ -761,16 +761,16 @@ public class ClosureService  implements IClosureService{//Closure
 
 	}
 	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName) {
-		DocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
+		ClosureDocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
 				EkycConstants.DOC_CLOSURE_ESIGN);
 		if (oldEntity == null) {
-			DocumentEntity documentEntity = new DocumentEntity();
-			documentEntity.setApplicationId(applicationId);
-			documentEntity.setAttachementUrl(documentPath);
-			documentEntity.setAttachement(fileName);
-			documentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
-			documentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
-			docrepository.save(documentEntity);
+			ClosureDocumentEntity ClosureDocumentEntity = new ClosureDocumentEntity();
+			ClosureDocumentEntity.setApplicationId(applicationId);
+			ClosureDocumentEntity.setAttachementUrl(documentPath);
+			ClosureDocumentEntity.setAttachement(fileName);
+			ClosureDocumentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
+			ClosureDocumentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
+			docrepository.save(ClosureDocumentEntity);
 		} else {
 			oldEntity.setAttachementUrl(documentPath);
 			oldEntity.setAttachement(fileName);

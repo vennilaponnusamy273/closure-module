@@ -20,8 +20,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
 import in.codifi.api.config.ApplicationProperties;
-import in.codifi.api.entity.EmailTemplateEntity;
-import in.codifi.api.repository.EmailTemplateRepository;
+import in.codifi.api.entity.ClosureEmailTemplateEntity;
+import in.codifi.api.repository.ClosureEmailTemplateRepository;
 
 @ApplicationScoped
 public class CommonMail {
@@ -29,7 +29,7 @@ public class CommonMail {
 	@Inject
 	ApplicationProperties props;
 	@Inject
-	EmailTemplateRepository emailTemplateRepository;
+	ClosureEmailTemplateRepository emailTemplateRepository;
 
 	@Inject
 	CommonMethods commonMethods;
@@ -90,7 +90,7 @@ public class CommonMail {
 	}
 
 	public String sendMailWithFile(String mailIds, String name, String msg, String path) {
-		EmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Esign");
+		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Esign");
 		StringBuilder builder = new StringBuilder();
 		String success = EkycConstants.FAILED_MSG;
 		try {

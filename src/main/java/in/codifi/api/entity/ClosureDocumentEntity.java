@@ -13,10 +13,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity(name = "tbl_document_details")
+@Entity(name = "tbl_closure_document_details")
 @Getter
 @Setter
-public class DocumentEntity extends CommonEntity implements Serializable {
+public class ClosureDocumentEntity extends ClosureCommonEntity implements Serializable {
 
 	/**
 	 * 

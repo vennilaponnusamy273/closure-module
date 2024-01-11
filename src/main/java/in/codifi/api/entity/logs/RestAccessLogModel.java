@@ -2,13 +2,13 @@ package in.codifi.api.entity.logs;
 
 import java.io.Serializable;
 
-import in.codifi.api.entity.CommonEntity;
+import in.codifi.api.entity.ClosureCommonEntity;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class RestAccessLogModel extends CommonEntity implements Serializable {
+public class RestAccessLogModel extends ClosureCommonEntity implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	private Long id;
