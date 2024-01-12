@@ -192,7 +192,7 @@ public class ClosureService  implements IClosureService{//Closure
 						closurelogEntity = new ClosurelogEntity();
 						closurelogEntity.setUserId(dpResult.getUserId());
 					}
-					String dpId = dpResult.getDpId();
+					String dpId = dpResult.getDpCode();
 					if (dpId != null) {
 					    if (dpId.startsWith("120")) {
 					    	closurelogEntity.setCdsl(1);
