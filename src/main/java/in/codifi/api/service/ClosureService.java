@@ -152,7 +152,7 @@ public class ClosureService  implements IClosureService{//Closure
 	        logger.error("An error occurred: " + e.getMessage());
 	        commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
 	        commonMethods.sendErrorMail(
-	                "An error occurred while processing your ReEKYCService, In checkPositionHoldAndFunds for the Error: "
+	                "An error occurred while processing your ReEKYCService, In ClosureService-checkPositionHoldAndFunds for the Error: "
 	                        + e.getMessage(),
 	                "ERR-001");
 	        response = commonMethods.constructFailedMsg(e.getMessage());
@@ -169,13 +169,66 @@ public class ClosureService  implements IClosureService{//Closure
 	        if (closurelogEntity == null) {
 	        	closurelogEntity = new ClosurelogEntity();
 	        	closurelogEntity.setUserId(clientBasicData.getTermCode());
+	        	closurelogEntity.setOwnCode(clientBasicData.getOwnCode());
+	        	closurelogEntity.setBrcode(clientBasicData.getBrCode());
+	        	closurelogEntity.setDealerCode(clientBasicData.getDealerCode());
+	        	closurelogEntity.setRelationshipCode(clientBasicData.getRelationshipCode());
+	        	closurelogEntity.setTeamLeader(clientBasicData.getTeamLeader());
+	        	closurelogEntity.setAddress1(clientBasicData.getAddress1());
+	        	closurelogEntity.setAddress2(clientBasicData.getAddress2());
+	        	closurelogEntity.setAddress3(clientBasicData.getAddress3());
+	        	closurelogEntity.setCity(clientBasicData.getCity());
+	        	closurelogEntity.setState(clientBasicData.getState());
+	        	closurelogEntity.setPincode(clientBasicData.getPincode());
+	        	closurelogEntity.setCountry(clientBasicData.getCorrCountry());
+	        	closurelogEntity.setMobile(clientBasicData.getMobile());
+	        	closurelogEntity.setPangir(clientBasicData.getPangir());
+	        	closurelogEntity.setCorraddress1(clientBasicData.getCorraddress1());
+	        	closurelogEntity.setCorraddress2(clientBasicData.getCorraddress2());
+	        	closurelogEntity.setCorraddress3(clientBasicData.getCorraddress3());
+	        	closurelogEntity.setCorrcity(clientBasicData.getCorrcity());
+	        	closurelogEntity.setCorrCountry(clientBasicData.getCorrCountry());
+	        	closurelogEntity.setCorrPin(clientBasicData.getCorrPin());
+	        	closurelogEntity.setCorrstate(clientBasicData.getCorrstate());
+	        	closurelogEntity.setGender(clientBasicData.getGender());
+	        	closurelogEntity.setMaritalStatus(clientBasicData.getMaritalStatus());
+	        	closurelogEntity.setDob(clientBasicData.getDob().toString());
+	        	closurelogEntity.setUccClientCategory(clientBasicData.getUccClientCategory());
+	        	closurelogEntity.setUniqueIdentification(clientBasicData.getUniqueIdentification());
+	        	closurelogEntity.setGstno(clientBasicData.getGstno());
+	        	closurelogEntity.setAuthorizationType(clientBasicData.getAuthorizationType());
+	        	closurelogEntity.setEmail(clientBasicData.getEmail());
+	        	closurelogEntity.setEmailbc(clientBasicData.getEmailbc());
+	        	closurelogEntity.setEmailcc(clientBasicData.getEmailcc());
+	        	closurelogEntity.setActive(clientBasicData.getActive());
+	        	closurelogEntity.setNameAsperPan(clientBasicData.getNameAsperPan());
+	        	closurelogEntity.setFatherSpouseFlag(clientBasicData.getFatherSpouseFlag());
+	        	closurelogEntity.setFatherhusbandname(clientBasicData.getFatherhusbandname());
+	        	closurelogEntity.setAccountOpenDT(clientBasicData.getAccountOpenDT().toString());
+	        	closurelogEntity.setPep(clientBasicData.getPep());
+	        	closurelogEntity.setNincome(clientBasicData.getNincome());
+	        	closurelogEntity.setNetworth(clientBasicData.getNetworth());
+	        	closurelogEntity.setNom1(clientBasicData.getNom1());
+	        	closurelogEntity.setNom2(clientBasicData.getNom2());
+	        	closurelogEntity.setNom3(clientBasicData.getNom3());
+	        	closurelogEntity.setIntroCode(clientBasicData.getIntroCode());
+	        	closurelogEntity.setFirstName(clientBasicData.getFirstName());
+	        	closurelogEntity.setMiddleName(clientBasicData.getMiddleName());
+	        	closurelogEntity.setLastName(clientBasicData.getLastName());
+	        	closurelogEntity.setPrefix(clientBasicData.getPrefix());
+	        	closurelogEntity.setSebiMtf(clientBasicData.getSebiMtf());
 	        }
 	        closurelogEntity.setPosition(reKycResmodel.isPositions());
 	        closurelogEntity.setHoldings(reKycResmodel.isHoldings());
 	        closurelogEntity.setFunds(reKycResmodel.isFunds());
 	        closurelogRepository.save(closurelogEntity);
 	    } catch (Exception e) {
-	        e.printStackTrace();
+	    	logger.error("An error occurred: " + e.getMessage());
+	        commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
+	        commonMethods.sendErrorMail(
+	                "An error occurred while processing your ReEKYCService, In ClosureService-saveRekycLog for the Error: "
+	                        + e.getMessage(),
+	                "ERR-001");
 	    }
 	}
 
@@ -216,7 +269,7 @@ public class ClosureService  implements IClosureService{//Closure
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
 			commonMethods.sendErrorMail(
-					"An error occurred while processing your ReEKYCService, In checkPositionHoldAndFunds for the Error: "
+					"An error occurred while processing your ReEKYCService, In ClosureService-getDpDetails for the Error: "
 							+ e.getMessage(),
 					"ERR-001");
 			response = commonMethods.constructFailedMsg(e.getMessage());
@@ -291,7 +344,7 @@ public class ClosureService  implements IClosureService{//Closure
 		            // Log and send email only if it's not an expected PDF encryption issue
 		            logger.error("An error occurred: " + e.getMessage());
 		            commonMethods.sendErrorMail(
-		                    "An error occurred while processing your request ClosureoService, In UploadCMR for the Error: " + e.getMessage(),
+		                    "An error occurred while processing your request UploadCMR, In ClosureService-UploadCMR for the Error: " + e.getMessage(),
 		                    "ERR-001");
 		        }
 		        responseModel = commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
@@ -356,6 +409,8 @@ public class ClosureService  implements IClosureService{//Closure
 			        	closurelogEntity = new ClosurelogEntity();
 			            closurelogEntity.setUserId(userId);
 			        }
+			        closurelogEntity.setTargetDpID(data.getTargetDpID());
+			        closurelogEntity.setTargetRepository(data.getTargetRepository());
 			        closurelogEntity.setCmrpath(updatedDocEntity.getAttachementUrl());
 			        closurelogRepository.save(closurelogEntity);
 				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
@@ -366,7 +421,7 @@ public class ClosureService  implements IClosureService{//Closure
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(
-					"An error occurred while processing your request ClosureoService, In saveDoc for the Error: " + e.getMessage(),
+					"An error occurred while processing your request saveDoc, In ClosureService-saveDoc for the Error: " + e.getMessage(),
 					"ERR-001");
 			responseModel = commonMethods.constructFailedMsg(e.getMessage());
 		}
@@ -492,11 +547,14 @@ public class ClosureService  implements IClosureService{//Closure
 			contentStream.close();
 		}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.sendErrorMail(
+					"An error occurred while processing your request pdfInsertCoordinates, In ClosureService-pdfInsertCoordinates for the Error: " + e.getMessage(),
+					"ERR-001");
 		}
 	}
 
-	private HashMap<String, String> mapping(ClientBasicData clientBasicData,String dpId) {
+	private HashMap<String, String> mapping(ClientBasicData clientBasicData,String dpId1) {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date = new Date();
@@ -516,7 +574,7 @@ public class ClosureService  implements IClosureService{//Closure
 		map.put("Date6", String.valueOf(formattedDate.charAt(7))); // Year
 		map.put("Date7", String.valueOf(formattedDate.charAt(8))); // Separator (-)
 		map.put("Date8", String.valueOf(formattedDate.charAt(9))); // Separator (-)
-
+		 String dpId = dpId1.substring(0, 8);
 		if (dpId != null) {
 		    if (dpId.startsWith("120")) {
 		    	map.put("CSDLPDF", "CSDLPDF");
@@ -716,7 +774,7 @@ public class ClosureService  implements IClosureService{//Closure
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(
-					"An error occurred while processing your request. In getNsdlXml for the Error: " + e.getMessage(),
+					"An error occurred while processing your request. In ClosureService-getNsdlXml for the Error: " + e.getMessage(),
 					"ERR-001");
 		}
 
@@ -731,7 +789,7 @@ public class ClosureService  implements IClosureService{//Closure
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(
-					"An error occurred while processing your request, In closureMail for the Error: " + e.getMessage(),
+					"An error occurred while processing your request, In ClosureService-closureMail for the Error: " + e.getMessage(),
 					"ERR-001");
 		}
 	}
@@ -761,6 +819,7 @@ public class ClosureService  implements IClosureService{//Closure
 
 	}
 	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName) {
+		try {
 		ClosureDocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
 				EkycConstants.DOC_CLOSURE_ESIGN);
 		if (oldEntity == null) {
@@ -776,8 +835,12 @@ public class ClosureService  implements IClosureService{//Closure
 			oldEntity.setAttachement(fileName);
 			docrepository.save(oldEntity);
 		}
-//		s3BucketHelper.UploadErp(applicationId, EkycConstants.DOC_CLOSURE_ESIGN, documentPath, "", "");
-//		savepasswordProtectedFile(applicationId);
+	} catch (Exception e) {
+        logger.error("An error occurred: " + e.getMessage());
+        commonMethods.sendErrorMail(
+                "An error occurred while processing your request, In ClosureService-saveEsignDocumntDetails for the Error: " + e.getMessage(),
+                "ERR-001");
+    }
 	}
 
 
@@ -797,7 +860,7 @@ public class ClosureService  implements IClosureService{//Closure
 	    } catch (Exception e) {
 	        logger.error("An error occurred: " + e.getMessage());
 	        commonMethods.sendErrorMail(
-	                "An error occurred while processing your request, In sendMailOtp for the Error: " + e.getMessage(),
+	                "An error occurred while processing your request, In ClosureService-closuremailotp for the Error: " + e.getMessage(),
 	                "ERR-001");
 	        responseModel = commonMethods.constructFailedMsg(e.getMessage());
 	    }

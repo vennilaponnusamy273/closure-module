@@ -32,7 +32,7 @@ public class ClosureHelper {
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(
-					"An error occurred while processing your request, In saveOrUpdateSmsTrigger for the Error: "
+					"An error occurred while processing your request, In ClosureHelper-sendClosureOtp for the Error: "
 							+ e.getMessage(),
 					"ERR-001");
 		}
