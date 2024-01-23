@@ -1,17 +1,18 @@
 package in.codifi.api.service;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import in.codifi.api.entity.ClosureStatusEntity;
 import in.codifi.api.entity.ClosurelogEntity;
 import in.codifi.api.helper.ClosureHelper;
 import in.codifi.api.model.ResponseModel;
-import in.codifi.api.repository.ClosureStatusRepository;
 import in.codifi.api.repository.ClosurelogRepository;
 import in.codifi.api.service.spec.IClosureAdminService;
 import in.codifi.api.utilities.CommonMethods;
@@ -25,8 +26,7 @@ public class ClosureAdminService implements IClosureAdminService {
 
 	@Inject
 	CommonMethods commonMethods;
-	@Inject
-	ClosureStatusRepository closureStatusRepository;
+	
 	@Inject
 	ClosureHelper closureHelper;
 	@Inject
@@ -39,29 +39,28 @@ public class ClosureAdminService implements IClosureAdminService {
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 
-			if (closurelogEntity != null) {
-				ClosureStatusEntity closureStatusEntity = closureStatusRepository.findByUserId(userId);
-
-				if (closureStatusEntity == null) {
-					closureStatusEntity = new ClosureStatusEntity();
-					closureStatusEntity.setUserId(userId);
-				}
-
-				closureStatusEntity.setStatus(status);
-				closureStatusEntity.setRejectedReason(status == 0 ? rejectedReason : "");
-
-				// Save or update the closure status entity
-				closureStatusRepository.save(closureStatusEntity);
-
-				if (status == 1) {
-					sendClosureEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile());
-				}
-				response.setMessage(EkycConstants.SUCCESS_MSG);
-				response.setStat(EkycConstants.SUCCESS_STATUS);
-				response.setResult(closureStatusEntity);
-			} else {
-				response = commonMethods.constructFailedMsg(MessageConstants.CLOSURE_ID_NULL);
+			if (closurelogEntity == null) {
+				closurelogEntity = new ClosurelogEntity();
+				closurelogEntity.setUserId(userId);
 			}
+
+			closurelogEntity.setAdminstatus(status);
+			closurelogEntity.setRejectedReason(status == 0 ? rejectedReason : "");
+
+			// Save or update the closure status entity
+			closurelogRepository.save(closurelogEntity);
+
+			if (status == 1) {
+				sendClosureEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile());
+			}
+			response.setMessage(EkycConstants.SUCCESS_MSG);
+			response.setStat(EkycConstants.SUCCESS_STATUS);
+			Map<String, Object> resultDetails = new HashMap<>();
+			resultDetails.put("UserID", closurelogEntity.getUserId());
+			resultDetails.put("adminstatus", closurelogEntity.getAdminstatus());
+			resultDetails.put("RejectedReason", closurelogEntity.getRejectedReason());
+			response.setResult(resultDetails);
+
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.SaveLog(null, EkycConstants.CLOSURE_ADMIN_SERVICE, "updateClosureStatus", e.getMessage());
@@ -100,10 +99,15 @@ public class ClosureAdminService implements IClosureAdminService {
 	public ResponseModel resetClosureStatus(String userId) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-			closureStatusRepository.deleteByUserId(userId);
-			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
-			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-			responseModel.setResult(MessageConstants.CLOSURE_RESET_SUCCESS);
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+			if (closurelogEntity != null) {
+				closurelogEntity.setAdminstatus(0);
+				closurelogEntity.setRejectedReason("");
+				closurelogRepository.save(closurelogEntity);
+				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+				responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+				responseModel.setResult(MessageConstants.CLOSURE_RESET_SUCCESS);
+			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.SaveLog(null, EkycConstants.CLOSURE_ADMIN_SERVICE, "resetClosureStatus", e.getMessage());
@@ -118,11 +122,16 @@ public class ClosureAdminService implements IClosureAdminService {
 	public ResponseModel getClosureStatus(String userId) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-			ClosureStatusEntity closureStatusEntity = closureStatusRepository.findByUserId(userId);
-			if (closureStatusEntity != null) {
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+			if (closurelogEntity != null) {
 				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 				responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-				responseModel.setResult(closureStatusEntity);
+				 // Create a Map to hold additional details
+	            Map<String, Object> resultDetails = new HashMap<>();
+	            resultDetails.put("UserID", closurelogEntity.getUserId());
+	            resultDetails.put("adminstatus", closurelogEntity.getAdminstatus());
+	            resultDetails.put("RejectedReason", closurelogEntity.getRejectedReason());
+	            responseModel.setResult(resultDetails);
 			} else {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.CLOSURE_ID_NULL);
 			}

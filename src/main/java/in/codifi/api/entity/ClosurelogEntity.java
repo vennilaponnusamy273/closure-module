@@ -173,6 +173,9 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	@Column(name = "targetRepository")
 	private String targetRepository;
 
-
+	@Column(name = "adminstatus")
+	private int adminstatus;
 	
+	@Column(name = "RejectedReason")
+	private String RejectedReason;	
 }
