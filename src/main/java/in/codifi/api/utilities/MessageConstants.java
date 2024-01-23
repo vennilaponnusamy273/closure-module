@@ -30,5 +30,9 @@ public class MessageConstants {
 	public static final String RETRY_OTP_TRY_AFTER = "Please request otp after";
 	public static final String SECONDS = " seconds";
 	public static final String OTP_TIME_EXPIRED = "Your OTP time expired";
-
+	
+	public static final String REJECTION_REASON_MANDATORY = "Please provide a rejected reason";
+	public static final String CLOSURE_ID_NULL = "No Closure details found for the specified user ID";
+	public static final String CLOSURE_RESET_SUCCESS = "Closure status reset successfully";
+	public static final String CLOSURE_STATUS_EXCEPTION = "Invalid status. Status must be 0 or 1.";
 }

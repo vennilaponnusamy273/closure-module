@@ -1,6 +1,5 @@
 package in.codifi.api.controller.spec;
 
-import javax.mail.MessagingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -84,13 +83,5 @@ public interface IClosureController {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@APIResponse(description = "Test")
 	Response getNsdlXml(@FormParam("msg") String msg);
-	
-	
-	@Path("/closureotp")
-	@POST
-	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@APIResponse(description = "Test")
-	ResponseModel closuremailotp(@NotNull @QueryParam("emailID") String emailid,@NotNull @QueryParam("mobileNo") String mobileNo) throws MessagingException;
 
 }

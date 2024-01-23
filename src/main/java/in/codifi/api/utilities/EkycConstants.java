@@ -50,4 +50,12 @@ public class EkycConstants {
 	public static final String SITE_URL_FILE = "https://uattrade.cholasecurities.com/home";
 	public static final String DOC_CLOSURE_ESIGN = "CLOSURE_ESIGN_DOCUMENT";
 	public static final String CLOSURE_EMAIL = "CLOSURE_EMAIL";
+	
+	//ERROR LOGS
+	public static final String CLOSURE_ERROR_CODE = "ERR-005";
+	public static final String CLOSUREADMINCONTROLLER = "ClosureAdminController";
+	public static final String CLOSURE_HELPER = "ClosureHelper";
+	public static final String TRADING_REST_SERVICE = "tradingRestServices";
+	public static final String CLOSURE_ADMIN_SERVICE = "CLOSURE_ADMIN_SERVICE";
+	public static final String CLOSURE_SERVICE = "CLOSURE_SERVICE";
 }

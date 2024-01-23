@@ -42,7 +42,6 @@ import in.codifi.api.entity.ClosureDocumentEntity;
 import in.codifi.api.entity.ClosureNSDLandCSDLEntity;
 import in.codifi.api.entity.ClosureTxnDetailsEntity;
 import in.codifi.api.entity.ClosurelogEntity;
-import in.codifi.api.helper.ClosureHelper;
 import in.codifi.api.model.ClientBasicData;
 import in.codifi.api.model.DpResult;
 import in.codifi.api.model.FormDataModel;
@@ -62,11 +61,11 @@ import in.codifi.api.utilities.MessageConstants;
 import in.codifi.api.utilities.StringUtil;
 
 @ApplicationScoped
-public class ClosureService  implements IClosureService{//Closure
-	
+public class ClosureService implements IClosureService {// Closure
+
 	private static String OS = System.getProperty("os.name").toLowerCase();
 	private static final Logger logger = LogManager.getLogger(ClosureService.class);
-	@Inject 
+	@Inject
 	tradingRestServices TradingRestServices;
 	@Inject
 	CommonMethods commonMethods;
@@ -82,154 +81,147 @@ public class ClosureService  implements IClosureService{//Closure
 	ClosureTxnDetailsRepository txnDetailsRepository;
 	@Inject
 	Esign esign;
-	@Inject
-	ClosureHelper closureHelper;
 
 	@Override
 	public ResponseModel CheckPositionHoldandfunds(String token) {
-	    ResponseModel response = new ResponseModel();
-	    ReKycResmodel reKycResmodel = new ReKycResmodel();
-	    try {
-	        String authToken = "Bearer " + token;
-	        boolean positionStatus = false;
-	        boolean fundsStatus = false;
-	        boolean holdingsStatus = false;
+		ResponseModel response = new ResponseModel();
+		ReKycResmodel reKycResmodel = new ReKycResmodel();
+		try {
+			String authToken = "Bearer " + token;
+			boolean positionStatus = false;
+			boolean fundsStatus = false;
+			boolean holdingsStatus = false;
 
-	        // Check Positions
-	        positionStatus = TradingRestServices.getPosition(authToken);
-	        reKycResmodel.setPositions(positionStatus);
-	        if (positionStatus) {
-	            reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_EXIST);
-	            saveRekycLog(token, reKycResmodel);
-	            response.setResult(reKycResmodel);
-	        } else {
-	        	reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_NOT_EXIST);
-	            fundsStatus = TradingRestServices.getFunds(authToken);
-	            reKycResmodel.setFunds(fundsStatus);
-	            if (fundsStatus) {
-	                reKycResmodel.setFunds_remarks(MessageConstants.FUND_AVAILABLE);
-	                saveRekycLog(token, reKycResmodel);
-	                response.setResult(reKycResmodel);
-	            } else {
-	            	reKycResmodel.setFunds_remarks(MessageConstants.FUNDS_NOT_EXIST);
-	                holdingsStatus = TradingRestServices.getHoldings(authToken);
-	                reKycResmodel.setHoldings(holdingsStatus);
-	                if (holdingsStatus) {
-	                    ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
-	                    if (clientBasicData != null) {
-	                        ClosureDocumentEntity oldRecord = docrepository
-	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CMR_COPY);
-	                        ClosureDocumentEntity oldRecordsign = docrepository
-	                                .findByApplicationIdAndDocumentType(clientBasicData.getTermCode(), EkycConstants.CLOSURE_SIGN);
-	                        if (oldRecord != null&&oldRecordsign!=null) {
-	                            reKycResmodel.setHoldings(false);
-	                            reKycResmodel.setHoldings_remarks(MessageConstants.CMR_AVAILABLE);
-	                            response.setStat(EkycConstants.SUCCESS_STATUS);
-	                            response.setMessage(EkycConstants.SUCCESS_MSG);
-	                            response.setResult(reKycResmodel);
-	                            saveRekycLog(token, reKycResmodel);
-	                        } else {
-	                            reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_EXIST);
-	                            response.setResult(reKycResmodel);
-	                            saveRekycLog(token, reKycResmodel);
-	                        }
-	                    }
-	                    
-	                }else {
-	                	reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_NOT_EXIST);;
-	                }
-	            }
-	            if (!positionStatus && !fundsStatus && !holdingsStatus) {
-	                // All statuses are false, set a common remark or message
-	            	 saveRekycLog(token, reKycResmodel);
-	            	 response.setStat(EkycConstants.SUCCESS_STATUS);
-	            	 response.setMessage(EkycConstants.SUCCESS_MSG);
-	            	 response.setReason(MessageConstants.NOT_AVAILABLE_POSITIONS);
-	            	 response.setResult(reKycResmodel);
-	            }
-	        }
-	    } catch (Exception e) {
-	        logger.error("An error occurred: " + e.getMessage());
-	        commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
-	        commonMethods.sendErrorMail(
-	                "An error occurred while processing your ReEKYCService, In ClosureService-checkPositionHoldAndFunds for the Error: "
-	                        + e.getMessage(),
-	                "ERR-001");
-	        response = commonMethods.constructFailedMsg(e.getMessage());
-	    }
-	    return response;
+			// Check Positions
+			positionStatus = TradingRestServices.getPosition(authToken);
+			reKycResmodel.setPositions(positionStatus);
+			if (positionStatus) {
+				reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_EXIST);
+				saveRekycLog(token, reKycResmodel);
+				response.setResult(reKycResmodel);
+			} else {
+				reKycResmodel.setPositions_remarks(MessageConstants.POSITIONS_NOT_EXIST);
+				fundsStatus = TradingRestServices.getFunds(authToken);
+				reKycResmodel.setFunds(fundsStatus);
+				if (fundsStatus) {
+					reKycResmodel.setFunds_remarks(MessageConstants.FUND_AVAILABLE);
+					saveRekycLog(token, reKycResmodel);
+					response.setResult(reKycResmodel);
+				} else {
+					reKycResmodel.setFunds_remarks(MessageConstants.FUNDS_NOT_EXIST);
+					holdingsStatus = TradingRestServices.getHoldings(authToken);
+					reKycResmodel.setHoldings(holdingsStatus);
+					if (holdingsStatus) {
+						ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
+						if (clientBasicData != null) {
+							ClosureDocumentEntity oldRecord = docrepository.findByApplicationIdAndDocumentType(
+									clientBasicData.getTermCode(), EkycConstants.CMR_COPY);
+							ClosureDocumentEntity oldRecordsign = docrepository.findByApplicationIdAndDocumentType(
+									clientBasicData.getTermCode(), EkycConstants.CLOSURE_SIGN);
+							if (oldRecord != null && oldRecordsign != null) {
+								reKycResmodel.setHoldings(false);
+								reKycResmodel.setHoldings_remarks(MessageConstants.CMR_AVAILABLE);
+								response.setStat(EkycConstants.SUCCESS_STATUS);
+								response.setMessage(EkycConstants.SUCCESS_MSG);
+								response.setResult(reKycResmodel);
+								saveRekycLog(token, reKycResmodel);
+							} else {
+								reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_EXIST);
+								response.setResult(reKycResmodel);
+								saveRekycLog(token, reKycResmodel);
+							}
+						}
+
+					} else {
+						reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_NOT_EXIST);
+						;
+					}
+				}
+				if (!positionStatus && !fundsStatus && !holdingsStatus) {
+					// All statuses are false, set a common remark or message
+					saveRekycLog(token, reKycResmodel);
+					response.setStat(EkycConstants.SUCCESS_STATUS);
+					response.setMessage(EkycConstants.SUCCESS_MSG);
+					response.setReason(MessageConstants.NOT_AVAILABLE_POSITIONS);
+					response.setResult(reKycResmodel);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "checkPositionHoldAndFunds", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "checkPositionHoldAndFunds", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
+			response = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return response;
 	}
 
-
-
 	private void saveRekycLog(String authToken, ReKycResmodel reKycResmodel) {
-	    try {
-	        ClientBasicData clientBasicData = TradingRestServices.getUserDetails(authToken);
-	        ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
-	        if (closurelogEntity == null) {
-	        	closurelogEntity = new ClosurelogEntity();
-	        	closurelogEntity.setUserId(clientBasicData.getTermCode());
-	        	closurelogEntity.setOwnCode(clientBasicData.getOwnCode());
-	        	closurelogEntity.setBrcode(clientBasicData.getBrCode());
-	        	closurelogEntity.setDealerCode(clientBasicData.getDealerCode());
-	        	closurelogEntity.setRelationshipCode(clientBasicData.getRelationshipCode());
-	        	closurelogEntity.setTeamLeader(clientBasicData.getTeamLeader());
-	        	closurelogEntity.setAddress1(clientBasicData.getAddress1());
-	        	closurelogEntity.setAddress2(clientBasicData.getAddress2());
-	        	closurelogEntity.setAddress3(clientBasicData.getAddress3());
-	        	closurelogEntity.setCity(clientBasicData.getCity());
-	        	closurelogEntity.setState(clientBasicData.getState());
-	        	closurelogEntity.setPincode(clientBasicData.getPincode());
-	        	closurelogEntity.setCountry(clientBasicData.getCorrCountry());
-	        	closurelogEntity.setMobile(clientBasicData.getMobile());
-	        	closurelogEntity.setPangir(clientBasicData.getPangir());
-	        	closurelogEntity.setCorraddress1(clientBasicData.getCorraddress1());
-	        	closurelogEntity.setCorraddress2(clientBasicData.getCorraddress2());
-	        	closurelogEntity.setCorraddress3(clientBasicData.getCorraddress3());
-	        	closurelogEntity.setCorrcity(clientBasicData.getCorrcity());
-	        	closurelogEntity.setCorrCountry(clientBasicData.getCorrCountry());
-	        	closurelogEntity.setCorrPin(clientBasicData.getCorrPin());
-	        	closurelogEntity.setCorrstate(clientBasicData.getCorrstate());
-	        	closurelogEntity.setGender(clientBasicData.getGender());
-	        	closurelogEntity.setMaritalStatus(clientBasicData.getMaritalStatus());
-	        	closurelogEntity.setDob(clientBasicData.getDob().toString());
-	        	closurelogEntity.setUccClientCategory(clientBasicData.getUccClientCategory());
-	        	closurelogEntity.setUniqueIdentification(clientBasicData.getUniqueIdentification());
-	        	closurelogEntity.setGstno(clientBasicData.getGstno());
-	        	closurelogEntity.setAuthorizationType(clientBasicData.getAuthorizationType());
-	        	closurelogEntity.setEmail(clientBasicData.getEmail());
-	        	closurelogEntity.setEmailbc(clientBasicData.getEmailbc());
-	        	closurelogEntity.setEmailcc(clientBasicData.getEmailcc());
-	        	closurelogEntity.setActive(clientBasicData.getActive());
-	        	closurelogEntity.setNameAsperPan(clientBasicData.getNameAsperPan());
-	        	closurelogEntity.setFatherSpouseFlag(clientBasicData.getFatherSpouseFlag());
-	        	closurelogEntity.setFatherhusbandname(clientBasicData.getFatherhusbandname());
-	        	closurelogEntity.setAccountOpenDT(clientBasicData.getAccountOpenDT().toString());
-	        	closurelogEntity.setPep(clientBasicData.getPep());
-	        	closurelogEntity.setNincome(clientBasicData.getNincome());
-	        	closurelogEntity.setNetworth(clientBasicData.getNetworth());
-	        	closurelogEntity.setNom1(clientBasicData.getNom1());
-	        	closurelogEntity.setNom2(clientBasicData.getNom2());
-	        	closurelogEntity.setNom3(clientBasicData.getNom3());
-	        	closurelogEntity.setIntroCode(clientBasicData.getIntroCode());
-	        	closurelogEntity.setFirstName(clientBasicData.getFirstName());
-	        	closurelogEntity.setMiddleName(clientBasicData.getMiddleName());
-	        	closurelogEntity.setLastName(clientBasicData.getLastName());
-	        	closurelogEntity.setPrefix(clientBasicData.getPrefix());
-	        	closurelogEntity.setSebiMtf(clientBasicData.getSebiMtf());
-	        }
-	        closurelogEntity.setPosition(reKycResmodel.isPositions());
-	        closurelogEntity.setHoldings(reKycResmodel.isHoldings());
-	        closurelogEntity.setFunds(reKycResmodel.isFunds());
-	        closurelogRepository.save(closurelogEntity);
-	    } catch (Exception e) {
-	    	logger.error("An error occurred: " + e.getMessage());
-	        commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
-	        commonMethods.sendErrorMail(
-	                "An error occurred while processing your ReEKYCService, In ClosureService-saveRekycLog for the Error: "
-	                        + e.getMessage(),
-	                "ERR-001");
-	    }
+		try {
+			ClientBasicData clientBasicData = TradingRestServices.getUserDetails(authToken);
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
+			if (closurelogEntity == null) {
+				closurelogEntity = new ClosurelogEntity();
+				closurelogEntity.setUserId(clientBasicData.getTermCode());
+			}
+			closurelogEntity.setOwnCode(clientBasicData.getOwnCode());
+			closurelogEntity.setBrcode(clientBasicData.getBrCode());
+			closurelogEntity.setDealerCode(clientBasicData.getDealerCode());
+			closurelogEntity.setRelationshipCode(clientBasicData.getRelationshipCode());
+			closurelogEntity.setTeamLeader(clientBasicData.getTeamLeader());
+			closurelogEntity.setAddress1(clientBasicData.getAddress1());
+			closurelogEntity.setAddress2(clientBasicData.getAddress2());
+			closurelogEntity.setAddress3(clientBasicData.getAddress3());
+			closurelogEntity.setCity(clientBasicData.getCity());
+			closurelogEntity.setState(clientBasicData.getState());
+			closurelogEntity.setPincode(clientBasicData.getPincode());
+			closurelogEntity.setCountry(clientBasicData.getCorrCountry());
+			closurelogEntity.setMobile(clientBasicData.getMobile());
+			closurelogEntity.setPangir(clientBasicData.getPangir());
+			closurelogEntity.setCorraddress1(clientBasicData.getCorraddress1());
+			closurelogEntity.setCorraddress2(clientBasicData.getCorraddress2());
+			closurelogEntity.setCorraddress3(clientBasicData.getCorraddress3());
+			closurelogEntity.setCorrcity(clientBasicData.getCorrcity());
+			closurelogEntity.setCorrCountry(clientBasicData.getCorrCountry());
+			closurelogEntity.setCorrPin(clientBasicData.getCorrPin());
+			closurelogEntity.setCorrstate(clientBasicData.getCorrstate());
+			closurelogEntity.setGender(clientBasicData.getGender());
+			closurelogEntity.setMaritalStatus(clientBasicData.getMaritalStatus());
+			closurelogEntity.setDob(clientBasicData.getDob().toString());
+			closurelogEntity.setUccClientCategory(clientBasicData.getUccClientCategory());
+			closurelogEntity.setUniqueIdentification(clientBasicData.getUniqueIdentification());
+			closurelogEntity.setGstno(clientBasicData.getGstno());
+			closurelogEntity.setAuthorizationType(clientBasicData.getAuthorizationType());
+			closurelogEntity.setEmail(clientBasicData.getEmail());
+			closurelogEntity.setEmailbc(clientBasicData.getEmailbc());
+			closurelogEntity.setEmailcc(clientBasicData.getEmailcc());
+			closurelogEntity.setActive(clientBasicData.getActive());
+			closurelogEntity.setNameAsperPan(clientBasicData.getNameAsperPan());
+			closurelogEntity.setFatherSpouseFlag(clientBasicData.getFatherSpouseFlag());
+			closurelogEntity.setFatherhusbandname(clientBasicData.getFatherhusbandname());
+			closurelogEntity.setAccountOpenDT(clientBasicData.getAccountOpenDT().toString());
+			closurelogEntity.setPep(clientBasicData.getPep());
+			closurelogEntity.setNincome(clientBasicData.getNincome());
+			closurelogEntity.setNetworth(clientBasicData.getNetworth());
+			closurelogEntity.setNom1(clientBasicData.getNom1());
+			closurelogEntity.setNom2(clientBasicData.getNom2());
+			closurelogEntity.setNom3(clientBasicData.getNom3());
+			closurelogEntity.setIntroCode(clientBasicData.getIntroCode());
+			closurelogEntity.setFirstName(clientBasicData.getFirstName());
+			closurelogEntity.setMiddleName(clientBasicData.getMiddleName());
+			closurelogEntity.setLastName(clientBasicData.getLastName());
+			closurelogEntity.setPrefix(clientBasicData.getPrefix());
+			closurelogEntity.setSebiMtf(clientBasicData.getSebiMtf());
+			closurelogEntity.setPosition(reKycResmodel.isPositions());
+			closurelogEntity.setHoldings(reKycResmodel.isHoldings());
+			closurelogEntity.setFunds(reKycResmodel.isFunds());
+			closurelogRepository.save(closurelogEntity);
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "saveRekycLog", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "saveRekycLog", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
+		}
 	}
 
 	@Override
@@ -247,38 +239,36 @@ public class ClosureService  implements IClosureService{//Closure
 					}
 					String dpId = dpResult.getDpCode();
 					if (dpId != null) {
-					    if (dpId.startsWith("120")) {
-					    	closurelogEntity.setCdsl(1);
-					    } else if (dpId.startsWith("IN")) {
-					    	closurelogEntity.setNsdl(1);
-					    }
-						 String existingDpId = closurelogEntity.getDpId();
-				            if (existingDpId == null || !existingDpId.contains(dpId)) {
-				                if (existingDpId != null && !existingDpId.isEmpty()) {
-				                	closurelogEntity.setDpId(existingDpId + "," + dpId);
-				                } else {
-				                	closurelogEntity.setDpId(dpId);
-				                }
-				            }
-				            closurelogRepository.save(closurelogEntity);
+						if (dpId.startsWith("120")) {
+							closurelogEntity.setCdsl(1);
+						} else if (dpId.startsWith("IN")) {
+							closurelogEntity.setNsdl(1);
+						}
+						String existingDpId = closurelogEntity.getDpId();
+						if (existingDpId == null || !existingDpId.contains(dpId)) {
+							if (existingDpId != null && !existingDpId.isEmpty()) {
+								closurelogEntity.setDpId(existingDpId + "," + dpId);
+							} else {
+								closurelogEntity.setDpId(dpId);
+							}
+						}
+						closurelogRepository.save(closurelogEntity);
 					}
 				}
 				response.setResult(dpModel);
 			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.SaveLog(null, "ClosureoService", "checkPositionHoldAndFunds", e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your ReEKYCService, In ClosureService-getDpDetails for the Error: "
-							+ e.getMessage(),
-					"ERR-001");
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "getDpDetails", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "getDpDetails", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 			response = commonMethods.constructFailedMsg(e.getMessage());
 		}
 		return response;
 	}
 
 	@Override
-	public ResponseModel UploadCMR(FormDataModel  fileModel) {
+	public ResponseModel UploadCMR(FormDataModel fileModel) {
 		System.out.println("the UploadCMR service");
 		ResponseModel responseModel = new ResponseModel();
 		try {
@@ -290,28 +280,29 @@ public class ClosureService  implements IClosureService{//Closure
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
-			if (fileModel.getApplicationId()!=null  && fileModel.getFile() != null
+			if (fileModel.getApplicationId() != null && fileModel.getFile() != null
 					&& StringUtil.isNotNullOrEmpty(fileModel.getFile().contentType())) {
 				System.out.println("the UploadCMR service1");
 				boolean content = (fileModel.getFile().contentType().equals(EkycConstants.CONST_APPLICATION_PDF));
-				 if (content) {
-		                String fileName = fileModel.getApplicationId() + EkycConstants.UNDERSCORE
-		                        + fileModel.getTypeOfProof() + EkycConstants.PDF_EXTENSION;
-		                String totalFileName = props.getFileBasePath() + fileModel.getApplicationId() + slash + fileName;
-		                Path path = fileModel.getFile().filePath();
-		                PDDocument document = PDDocument.load(new File(path.toString()));
-		                try {
-		                    // document.getClass();
-		                    if (document.isEncrypted()) {
-		                        return commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
-		                    } else {
-		                        document.save(totalFileName);
-		                        responseModel = saveDoc(fileModel, fileName, totalFileName,fileModel.getApplicationId(), fileModel.getDocumentType());
-		                    }
-		                } finally {
-		                    document.close();
-		                }
-		            } else if (!content) {
+				if (content) {
+					String fileName = fileModel.getApplicationId() + EkycConstants.UNDERSCORE
+							+ fileModel.getTypeOfProof() + EkycConstants.PDF_EXTENSION;
+					String totalFileName = props.getFileBasePath() + fileModel.getApplicationId() + slash + fileName;
+					Path path = fileModel.getFile().filePath();
+					PDDocument document = PDDocument.load(new File(path.toString()));
+					try {
+						// document.getClass();
+						if (document.isEncrypted()) {
+							return commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
+						} else {
+							document.save(totalFileName);
+							responseModel = saveDoc(fileModel, fileName, totalFileName, fileModel.getApplicationId(),
+									fileModel.getDocumentType());
+						}
+					} finally {
+						document.close();
+					}
+				} else if (!content) {
 					String errorMsg = checkValidate(fileModel);
 					if (StringUtil.isNullOrEmpty(errorMsg)) {
 						FileUpload f = fileModel.getFile();
@@ -324,7 +315,8 @@ public class ClosureService  implements IClosureService{//Closure
 							Files.delete(path);
 						}
 						Files.copy(fileModel.getFile().filePath(), path);
-						responseModel = saveDoc(fileModel, fileName, filePath,fileModel.getApplicationId(),fileModel.getDocumentType());
+						responseModel = saveDoc(fileModel, fileName, filePath, fileModel.getApplicationId(),
+								fileModel.getDocumentType());
 					} else {
 						return commonMethods.constructFailedMsg(errorMsg);
 					}
@@ -339,18 +331,17 @@ public class ClosureService  implements IClosureService{//Closure
 					responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
 				}
 			}
-		 } catch (Exception e) {
-		        if (!(e instanceof IOException )) {
-		            // Log and send email only if it's not an expected PDF encryption issue
-		            logger.error("An error occurred: " + e.getMessage());
-		            commonMethods.sendErrorMail(
-		                    "An error occurred while processing your request UploadCMR, In ClosureService-UploadCMR for the Error: " + e.getMessage(),
-		                    "ERR-001");
-		        }
-		        responseModel = commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
-		    }
-		    return responseModel;
+		} catch (Exception e) {
+			if (!(e instanceof IOException)) {
+				commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "UploadCMR", e.getMessage());
+				logger.error("An error occurred: " + e.getMessage());
+				commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "UploadCMR", e.getMessage(),
+						EkycConstants.CLOSURE_ERROR_CODE);
+			}
+			responseModel = commonMethods.constructFailedMsg(MessageConstants.PDF_ENCRYPTED);
 		}
+		return responseModel;
+	}
 
 	public String checkPasswordProtected(FormDataModel fileModel) {
 		String error = "";
@@ -365,16 +356,16 @@ public class ClosureService  implements IClosureService{//Closure
 		}
 		return error;
 	}
-	
+
 	public String checkValidate(FormDataModel data) {
-	    List<String> mimetype = Arrays.asList("image/jpg", "image/jpeg","image/png");
-	    if (!mimetype.contains(data.getFile().contentType())) {
-	        return "File not supported";
-	    }
-	    return "";
+		List<String> mimetype = Arrays.asList("image/jpg", "image/jpeg", "image/png");
+		if (!mimetype.contains(data.getFile().contentType())) {
+			return "File not supported";
+		}
+		return "";
 	}
 
-	public ResponseModel saveDoc(FormDataModel data, String fileName, String filePath,String userId,String docType) {
+	public ResponseModel saveDoc(FormDataModel data, String fileName, String filePath, String userId, String docType) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
@@ -405,14 +396,14 @@ public class ClosureService  implements IClosureService{//Closure
 			}
 			if (updatedDocEntity != null) {
 				ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
-			        if (closurelogEntity == null) {
-			        	closurelogEntity = new ClosurelogEntity();
-			            closurelogEntity.setUserId(userId);
-			        }
-			        closurelogEntity.setTargetDpID(data.getTargetDpID());
-			        closurelogEntity.setTargetRepository(data.getTargetRepository());
-			        closurelogEntity.setCmrpath(updatedDocEntity.getAttachementUrl());
-			        closurelogRepository.save(closurelogEntity);
+				if (closurelogEntity == null) {
+					closurelogEntity = new ClosurelogEntity();
+					closurelogEntity.setUserId(userId);
+				}
+				closurelogEntity.setTargetDpID(data.getTargetDpID());
+				closurelogEntity.setTargetRepository(data.getTargetRepository());
+				closurelogEntity.setCmrpath(updatedDocEntity.getAttachementUrl());
+				closurelogRepository.save(closurelogEntity);
 				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 				responseModel.setResult(updatedDocEntity);
 			} else {
@@ -420,9 +411,9 @@ public class ClosureService  implements IClosureService{//Closure
 			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request saveDoc, In ClosureService-saveDoc for the Error: " + e.getMessage(),
-					"ERR-001");
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "saveDoc", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "saveDoc", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 			responseModel = commonMethods.constructFailedMsg(e.getMessage());
 		}
 		return responseModel;
@@ -430,136 +421,131 @@ public class ClosureService  implements IClosureService{//Closure
 
 	@Override
 	@Transactional
-	public Response GeneratePdf(String token,String dpId) {
-	    String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
-	    if (OS.contains(EkycConstants.OS_WINDOWS)) {
-	        slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
-	    }
-	    try {
-	        ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
+	public Response GeneratePdf(String token, String dpId) {
+		String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
+		if (OS.contains(EkycConstants.OS_WINDOWS)) {
+			slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
+		}
+		try {
+			ClientBasicData clientBasicData = TradingRestServices.getUserDetails(token);
 
-	        if (clientBasicData != null) {
-	        	 HashMap<String, String> map = mapping(clientBasicData,dpId);
-					File filensdl = new File(props.getNsdlpdf());
-					File filecdsl = new File(props.getCsdlpdf());
-					PDDocument document;
-					if (map.get("NSDLPDF") != null) {
-						document = PDDocument.load(filensdl);
-					} else if (map.get("CSDLPDF") != null) {
-						document = PDDocument.load(filecdsl);
-					} else {
-						return Response.status(Response.Status.BAD_REQUEST).entity("Invalid value for WayofPdf: ")
-								.build();
-					}
-	            String outputPath = props.getFileBasePath() + clientBasicData.getTermCode();
-	            new File(outputPath).mkdir();
+			if (clientBasicData != null) {
+				HashMap<String, String> map = mapping(clientBasicData, dpId);
+				File filensdl = new File(props.getNsdlpdf());
+				File filecdsl = new File(props.getCsdlpdf());
+				PDDocument document;
+				if (map.get("NSDLPDF") != null) {
+					document = PDDocument.load(filensdl);
+				} else if (map.get("CSDLPDF") != null) {
+					document = PDDocument.load(filecdsl);
+				} else {
+					return Response.status(Response.Status.BAD_REQUEST).entity("Invalid value for WayofPdf: ").build();
+				}
+				String outputPath = props.getFileBasePath() + clientBasicData.getTermCode();
+				new File(outputPath).mkdir();
 
-	            List<ClosureNSDLandCSDLEntity> pdfDatas = closureNSDLandCSDLRepository.getCoordinates();
-	            pdfInsertCoordinates(document, pdfDatas, map, clientBasicData);
+				List<ClosureNSDLandCSDLEntity> pdfDatas = closureNSDLandCSDLRepository.getCoordinates();
+				pdfInsertCoordinates(document, pdfDatas, map, clientBasicData);
 
-	            String fileName = dpId + EkycConstants.PDF_EXTENSION;
-	            document.save(outputPath + slash + fileName);
-	            document.close();
+				String fileName = dpId + EkycConstants.PDF_EXTENSION;
+				document.save(outputPath + slash + fileName);
+				document.close();
 
-	            String contentType = URLConnection.guessContentTypeFromName(fileName);
-	            String path = outputPath + slash + fileName;
-	            File savedFile = new File(path);
-	            ResponseBuilder response = Response.ok((Object) savedFile);
+				String contentType = URLConnection.guessContentTypeFromName(fileName);
+				String path = outputPath + slash + fileName;
+				File savedFile = new File(path);
+				ResponseBuilder response = Response.ok((Object) savedFile);
 				response.type(contentType);
 				response.header("Content-Disposition", "attachment;filename=" + savedFile.getName());
 				return response.build();
-	        } else {
-	            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-	                    .entity(MessageConstants.USER_ID_INVALID).build();
-	        }
-	    } catch (Exception e) {
-	        e.printStackTrace(); // Handle exceptions properly in a production environment
-	        
-	    }
-	    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(MessageConstants.FILE_NOT_FOUND).build();
-	}
+			} else {
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.USER_ID_INVALID)
+						.build();
+			}
+		} catch (Exception e) {
+			e.printStackTrace(); // Handle exceptions properly in a production environment
 
+		}
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND).build();
+	}
 
 	public void pdfInsertCoordinates(PDDocument document, List<ClosureNSDLandCSDLEntity> pdfDatas,
 			HashMap<String, String> map, ClientBasicData clientBasicData) {
 		try {
 			File fontFile = new File(props.getPdfFontfile());
-			System.out.println("the fontFile"+fontFile);
-			PDFont font = PDTrueTypeFont.loadTTF(document,fontFile);
-		for (ClosureNSDLandCSDLEntity pdfData : pdfDatas) {
-			float x = Float.parseFloat(pdfData.getXCoordinate());
-			float y = Float.parseFloat(pdfData.getYCoordinate());
-			int pageNo = Integer.parseInt(pdfData.getPageNo());
-			PDPage page = document.getPage(pageNo);
-			PDPageContentStream contentStream = new PDPageContentStream(document, page, true, true);
-			contentStream.setFont(font, 7);
-			PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
-			graphicsState.setNonStrokingAlphaConstant(1f);
-			contentStream.setGraphicsStateParameters(graphicsState);
-			contentStream.setCharacterSpacing(0.4f);
-			String columnType = pdfData.getColumnType();
-			String columnNames = pdfData.getColumnNames();
-			if (columnType.equalsIgnoreCase("CSDL")&& map.get("CSDLPDF") != null) {
-				contentStream.beginText();
-				contentStream.setNonStrokingColor(0, 0, 0);
-				contentStream.newLineAtOffset(x, y);
-				String inputText = map.get(columnNames);
-				if (inputText != null) {
-					inputText = inputText.replaceAll("\n", " ");
-					contentStream.showText(inputText.toUpperCase());
-				}
-				contentStream.endText();
-			} else if (columnType.equalsIgnoreCase("NSDL")&& map.get("NSDLPDF") != null) {
-				contentStream.beginText();
-				contentStream.setNonStrokingColor(0, 0, 0);
-				contentStream.newLineAtOffset(x, y);
-				String inputText = map.get(columnNames);
-				if (inputText != null) {
-					inputText = inputText.replaceAll("\n", " ");
-					contentStream.showText(inputText.toUpperCase());
-				}
-				contentStream.endText();
-			}  else if (columnType.equalsIgnoreCase("CSDLtick")&& map.get("CSDLPDF") != null) {
-				String tick = "\u2713";
-				String inputText = map.get(columnNames);
-				if (inputText != null) {
+			System.out.println("the fontFile" + fontFile);
+			PDFont font = PDTrueTypeFont.loadTTF(document, fontFile);
+			for (ClosureNSDLandCSDLEntity pdfData : pdfDatas) {
+				float x = Float.parseFloat(pdfData.getXCoordinate());
+				float y = Float.parseFloat(pdfData.getYCoordinate());
+				int pageNo = Integer.parseInt(pdfData.getPageNo());
+				PDPage page = document.getPage(pageNo);
+				PDPageContentStream contentStream = new PDPageContentStream(document, page, true, true);
+				contentStream.setFont(font, 7);
+				PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
+				graphicsState.setNonStrokingAlphaConstant(1f);
+				contentStream.setGraphicsStateParameters(graphicsState);
+				contentStream.setCharacterSpacing(0.4f);
+				String columnType = pdfData.getColumnType();
+				String columnNames = pdfData.getColumnNames();
+				if (columnType.equalsIgnoreCase("CSDL") && map.get("CSDLPDF") != null) {
 					contentStream.beginText();
-					contentStream.setFont(PDType1Font.ZAPF_DINGBATS, 12);
 					contentStream.setNonStrokingColor(0, 0, 0);
 					contentStream.newLineAtOffset(x, y);
-					contentStream.showText(tick);
+					String inputText = map.get(columnNames);
+					if (inputText != null) {
+						inputText = inputText.replaceAll("\n", " ");
+						contentStream.showText(inputText.toUpperCase());
+					}
 					contentStream.endText();
-				}
-			} 
-			else if (columnType.equalsIgnoreCase("NSDLtick")&& map.get("NSDLPDF") != null) {
-				String tick = "\u2713";
-				String inputText = map.get(columnNames);
-				if (inputText != null) {
+				} else if (columnType.equalsIgnoreCase("NSDL") && map.get("NSDLPDF") != null) {
 					contentStream.beginText();
-					contentStream.setFont(PDType1Font.ZAPF_DINGBATS, 12);
 					contentStream.setNonStrokingColor(0, 0, 0);
 					contentStream.newLineAtOffset(x, y);
-					contentStream.showText(tick);
+					String inputText = map.get(columnNames);
+					if (inputText != null) {
+						inputText = inputText.replaceAll("\n", " ");
+						contentStream.showText(inputText.toUpperCase());
+					}
 					contentStream.endText();
+				} else if (columnType.equalsIgnoreCase("CSDLtick") && map.get("CSDLPDF") != null) {
+					String tick = "\u2713";
+					String inputText = map.get(columnNames);
+					if (inputText != null) {
+						contentStream.beginText();
+						contentStream.setFont(PDType1Font.ZAPF_DINGBATS, 12);
+						contentStream.setNonStrokingColor(0, 0, 0);
+						contentStream.newLineAtOffset(x, y);
+						contentStream.showText(tick);
+						contentStream.endText();
+					}
+				} else if (columnType.equalsIgnoreCase("NSDLtick") && map.get("NSDLPDF") != null) {
+					String tick = "\u2713";
+					String inputText = map.get(columnNames);
+					if (inputText != null) {
+						contentStream.beginText();
+						contentStream.setFont(PDType1Font.ZAPF_DINGBATS, 12);
+						contentStream.setNonStrokingColor(0, 0, 0);
+						contentStream.newLineAtOffset(x, y);
+						contentStream.showText(tick);
+						contentStream.endText();
+					}
 				}
-			} 
-			contentStream.close();
-		}
+				contentStream.close();
+			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request pdfInsertCoordinates, In ClosureService-pdfInsertCoordinates for the Error: " + e.getMessage(),
-					"ERR-001");
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "pdfInsertCoordinates", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "pdfInsertCoordinates", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 		}
 	}
 
-	private HashMap<String, String> mapping(ClientBasicData clientBasicData,String dpId1) {
+	private HashMap<String, String> mapping(ClientBasicData clientBasicData, String dpId1) {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date = new Date();
 
-		
 		// Format the current date using the specified pattern
 		String formattedDate = formatter.format(date);
 
@@ -574,52 +560,51 @@ public class ClosureService  implements IClosureService{//Closure
 		map.put("Date6", String.valueOf(formattedDate.charAt(7))); // Year
 		map.put("Date7", String.valueOf(formattedDate.charAt(8))); // Separator (-)
 		map.put("Date8", String.valueOf(formattedDate.charAt(9))); // Separator (-)
-		 String dpId = dpId1.substring(0, 8);
+		String dpId = dpId1.substring(0, 8);
 		if (dpId != null) {
-		    if (dpId.startsWith("120")) {
-		    	map.put("CSDLPDF", "CSDLPDF");
-		    	map.put("CDSL",dpId);
-		    } else if (dpId.startsWith("IN")) {
-		    	map.put("NSDLPDF", "NSDLPDF");
-		    	map.put("NSDL",dpId);
-		    }
+			if (dpId.startsWith("120")) {
+				map.put("CSDLPDF", "CSDLPDF");
+				map.put("CDSL", dpId);
+			} else if (dpId.startsWith("IN")) {
+				map.put("NSDLPDF", "NSDLPDF");
+				map.put("NSDL", dpId);
+			}
 		}
 		String tradingId = clientBasicData.getOwnCode();
 		if (tradingId != null && tradingId.length() >= 9) {
-		    map.put("TRADING ID:1", String.valueOf(tradingId.charAt(0)));
-		    map.put("TRADING ID:2", String.valueOf(tradingId.charAt(1)));
-		    map.put("TRADING ID:3", String.valueOf(tradingId.charAt(2)));
-		    map.put("TRADING ID:4", String.valueOf(tradingId.charAt(3)));
-		    map.put("TRADING ID:5", String.valueOf(tradingId.charAt(4)));
+			map.put("TRADING ID:1", String.valueOf(tradingId.charAt(0)));
+			map.put("TRADING ID:2", String.valueOf(tradingId.charAt(1)));
+			map.put("TRADING ID:3", String.valueOf(tradingId.charAt(2)));
+			map.put("TRADING ID:4", String.valueOf(tradingId.charAt(3)));
+			map.put("TRADING ID:5", String.valueOf(tradingId.charAt(4)));
 
-		    map.put("TRADING ID:6", String.valueOf(tradingId.charAt(5)));
-		    map.put("TRADING ID:7", String.valueOf(tradingId.charAt(6)));
-		    map.put("TRADING ID:8", String.valueOf(tradingId.charAt(7)));
-		    map.put("TRADING ID:9", String.valueOf(tradingId.charAt(8)));
-		    map.put("TRADING ID:10", String.valueOf(tradingId.charAt(9)));
+			map.put("TRADING ID:6", String.valueOf(tradingId.charAt(5)));
+			map.put("TRADING ID:7", String.valueOf(tradingId.charAt(6)));
+			map.put("TRADING ID:8", String.valueOf(tradingId.charAt(7)));
+			map.put("TRADING ID:9", String.valueOf(tradingId.charAt(8)));
+			map.put("TRADING ID:10", String.valueOf(tradingId.charAt(9)));
 		}
 		String clientId = clientBasicData.getTermCode();
 		if (clientId != null && clientId.length() >= 6) {
-		    map.put("Client ID1", String.valueOf(clientId.charAt(0)));
-		    map.put("Client ID2", String.valueOf(clientId.charAt(1)));
-		    map.put("Client ID3", String.valueOf(clientId.charAt(2)));
-		    map.put("Client ID4", String.valueOf(clientId.charAt(3)));
-		    map.put("Client ID5", String.valueOf(clientId.charAt(4)));
-		    map.put("Client ID6", String.valueOf(clientId.charAt(5)));
+			map.put("Client ID1", String.valueOf(clientId.charAt(0)));
+			map.put("Client ID2", String.valueOf(clientId.charAt(1)));
+			map.put("Client ID3", String.valueOf(clientId.charAt(2)));
+			map.put("Client ID4", String.valueOf(clientId.charAt(3)));
+			map.put("Client ID5", String.valueOf(clientId.charAt(4)));
+			map.put("Client ID6", String.valueOf(clientId.charAt(5)));
 		}
-		
-		
+
 		if (dpId != null && dpId.length() >= 8) {
-		    map.put("DP ID1", String.valueOf(dpId.charAt(0)));
-		    map.put("DP ID2", String.valueOf(dpId.charAt(1)));
-		    map.put("DP ID3", String.valueOf(dpId.charAt(2)));
-		    map.put("DP ID4", String.valueOf(dpId.charAt(3)));
-		    map.put("DP ID5", String.valueOf(dpId.charAt(4)));
-		    map.put("DP ID6", String.valueOf(dpId.charAt(5)));
-		    map.put("DP ID7", String.valueOf(dpId.charAt(6)));
-		    map.put("DP ID8", String.valueOf(dpId.charAt(7)));
+			map.put("DP ID1", String.valueOf(dpId.charAt(0)));
+			map.put("DP ID2", String.valueOf(dpId.charAt(1)));
+			map.put("DP ID3", String.valueOf(dpId.charAt(2)));
+			map.put("DP ID4", String.valueOf(dpId.charAt(3)));
+			map.put("DP ID5", String.valueOf(dpId.charAt(4)));
+			map.put("DP ID6", String.valueOf(dpId.charAt(5)));
+			map.put("DP ID7", String.valueOf(dpId.charAt(6)));
+			map.put("DP ID8", String.valueOf(dpId.charAt(7)));
 		}
-		
+
 		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
 		if (closurelogEntity != null && closurelogEntity.getAccType() > 0) {
 			if (closurelogEntity.getAccType() == 1) {
@@ -630,77 +615,94 @@ public class ClosureService  implements IClosureService{//Closure
 				map.put("Only trading", "3");
 			}
 		}
-		map.put("Reason for Closure",closurelogEntity.getAccclosingreasion()!=null?closurelogEntity.getAccclosingreasion():"");
-		 map.put("Name of the First / Sole Holder",clientBasicData.getNameAsperPan());
-		 String corAddress = clientBasicData.getCorraddress1() + " " + clientBasicData.getCorraddress2() + " " + clientBasicData.getCorraddress3();
-		 System.out.println("the corAddress"+corAddress);
-		 String first95Letters = corAddress.length() > 65 ? corAddress.substring(0, 65) : corAddress;
-		 System.out.println("the first95Letters"+first95Letters);
-		 String restOfAddress = corAddress.length() > 65 ? corAddress.substring(65) : "";
-		 System.out.println("the first95Letters"+restOfAddress);
-		 map.put("Address for Correspondence",first95Letters);
-		 map.put("Address for Correspondence1",restOfAddress);
-		 map.put("City",clientBasicData.getCity());
-		 map.put("State",clientBasicData.getState());
-		 String pincode=clientBasicData.getPincode();
-		 if(pincode!=null &&pincode.length()>=5) {
-		 map.put("PIN1",String.valueOf(pincode.charAt(0)));
-		 map.put("PIN2",String.valueOf(pincode.charAt(1)));
-		 map.put("PIN3",String.valueOf(pincode.charAt(2)));
-		 map.put("PIN4",String.valueOf(pincode.charAt(3)));
-		 map.put("PIN5",String.valueOf(pincode.charAt(4)));
-		 map.put("PIN6",String.valueOf(pincode.charAt(5)));
-		 }
-		return  map;
+		map.put("Reason for Closure",
+				closurelogEntity.getAccclosingreasion() != null ? closurelogEntity.getAccclosingreasion() : "");
+		map.put("Name of the First / Sole Holder", clientBasicData.getNameAsperPan());
+		String corAddress = clientBasicData.getCorraddress1() + " " + clientBasicData.getCorraddress2() + " "
+				+ clientBasicData.getCorraddress3();
+		System.out.println("the corAddress" + corAddress);
+		String first95Letters = corAddress.length() > 65 ? corAddress.substring(0, 65) : corAddress;
+		System.out.println("the first95Letters" + first95Letters);
+		String restOfAddress = corAddress.length() > 65 ? corAddress.substring(65) : "";
+		System.out.println("the first95Letters" + restOfAddress);
+		map.put("Address for Correspondence", first95Letters);
+		map.put("Address for Correspondence1", restOfAddress);
+		map.put("City", clientBasicData.getCity());
+		map.put("State", clientBasicData.getState());
+		String pincode = clientBasicData.getPincode();
+		if (pincode != null && pincode.length() >= 5) {
+			map.put("PIN1", String.valueOf(pincode.charAt(0)));
+			map.put("PIN2", String.valueOf(pincode.charAt(1)));
+			map.put("PIN3", String.valueOf(pincode.charAt(2)));
+			map.put("PIN4", String.valueOf(pincode.charAt(3)));
+			map.put("PIN5", String.valueOf(pincode.charAt(4)));
+			map.put("PIN6", String.valueOf(pincode.charAt(5)));
+		}
+		return map;
 	}
-
-
 
 	@Override
 	public ResponseModel getRekycLogs(String userId) {
-		ResponseModel responseModel=new ResponseModel();
+		ResponseModel responseModel = new ResponseModel();
 		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
-	        if (closurelogEntity != null) {
-	        	responseModel.setMessage(EkycConstants.SUCCESS_MSG);
-				responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-	        	responseModel.setResult(closurelogEntity);
-	        }else {
-	        	responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
-	        }
-			return responseModel;
+		if (closurelogEntity != null) {
+			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+			responseModel.setResult(closurelogEntity);
+		} else {
+			responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
+		}
+		return responseModel;
 	}
-
 
 	@Override
 	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason) {
-	    ResponseModel responseModel = new ResponseModel();
-	    ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
-	    
-	    if (closurelogEntity == null) {
-	        closurelogEntity = new ClosurelogEntity();
-	        closurelogEntity.setUserId(userId);
-	    }
-	    
-	    closurelogEntity.setAccType(accType);
-	    closurelogEntity.setAccclosingreasion(accCloseReason);
-	    closurelogRepository.save(closurelogEntity);	    
-	    responseModel.setMessage(EkycConstants.SUCCESS_MSG);
-	    responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-	    responseModel.setResult(closurelogEntity);
-	    
-	    return responseModel;
+		ResponseModel responseModel = new ResponseModel();
+		try {
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+
+			if (closurelogEntity == null) {
+				closurelogEntity = new ClosurelogEntity();
+				closurelogEntity.setUserId(userId);
+			}
+
+			closurelogEntity.setAccType(accType);
+			closurelogEntity.setAccclosingreasion(accCloseReason);
+			closurelogRepository.save(closurelogEntity);
+			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+			responseModel.setResult(closurelogEntity);
+
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
+			responseModel = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return responseModel;
 	}
+
 	@Override
 	public ResponseModel generateEsign(PdfApplicationDataModel pdfModel) {
 		ResponseModel model = null;
-		ClientBasicData clientBasicData = TradingRestServices.getUserDetails(pdfModel.getToken());
-		if (clientBasicData != null) {
-			GeneratePdf(pdfModel.getToken(),pdfModel.getDpId());
+		try {
+			ClientBasicData clientBasicData = TradingRestServices.getUserDetails(pdfModel.getToken());
+			if (clientBasicData != null) {
+				GeneratePdf(pdfModel.getToken(), pdfModel.getDpId());
+			}
+			model = esign.runMethod(props.getFileBasePath(), pdfModel.getApplicationNo(), pdfModel.getToken(),
+					pdfModel.getDpId());
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "generateEsign", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "generateEsign", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
+			model = commonMethods.constructFailedMsg(e.getMessage());
 		}
-		model = esign.runMethod(props.getFileBasePath(), pdfModel.getApplicationNo(),pdfModel.getToken(),pdfModel.getDpId());
 		return model;
 	}
-	
+
 	@Override
 	public Response getNsdlXml(String msg) {
 		String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
@@ -708,7 +710,7 @@ public class ClosureService  implements IClosureService{//Closure
 			slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
 		}
 		try {
-			
+
 			int random = (int) (Math.random() * 900000) + 100000;
 //			commonMethods.generateOTP(9876543210l);
 			String fileName = "lastXml" + random + ".xml";
@@ -750,12 +752,11 @@ public class ClosureService  implements IClosureService{//Closure
 							String filePath = detailsEntity.getFolderLocation();
 							String resposne = esign.getSignFromNsdl(
 									props.getFileBasePath() + detailsEntity.getApplicationId() + slash
-											+ detailsEntity.getDpId()+ EkycConstants.PDF_EXTENSION,
-									filePath, msg, detailsEntity.getUsername(),
-									detailsEntity.getCity(),
+											+ detailsEntity.getDpId() + EkycConstants.PDF_EXTENSION,
+									filePath, msg, detailsEntity.getUsername(), detailsEntity.getCity(),
 									detailsEntity.getDpId());
 							if (StringUtil.isNotNullOrEmpty(resposne)) {
-								String esignedFileName =detailsEntity.getDpId() + "_signedFinal"
+								String esignedFileName = detailsEntity.getDpId() + "_signedFinal"
 										+ EkycConstants.PDF_EXTENSION;
 								String path = filePath + slash + esignedFileName;
 								closureMail(detailsEntity.getEmailID());
@@ -773,11 +774,10 @@ public class ClosureService  implements IClosureService{//Closure
 			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request. In ClosureService-getNsdlXml for the Error: " + e.getMessage(),
-					"ERR-001");
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "getNsdlXml", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "getNsdlXml", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 		}
-
 		return null;
 	}
 
@@ -788,13 +788,11 @@ public class ClosureService  implements IClosureService{//Closure
 			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request, In ClosureService-closureMail for the Error: " + e.getMessage(),
-					"ERR-001");
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "closureMail", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "closureMail", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 		}
 	}
-
-
 
 	private static String parseNSDLNameDetails(JSONObject xmlJSONObj) {
 		String response = "";
@@ -818,57 +816,29 @@ public class ClosureService  implements IClosureService{//Closure
 		return response;
 
 	}
+
 	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName) {
 		try {
-		ClosureDocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
-				EkycConstants.DOC_CLOSURE_ESIGN);
-		if (oldEntity == null) {
-			ClosureDocumentEntity ClosureDocumentEntity = new ClosureDocumentEntity();
-			ClosureDocumentEntity.setApplicationId(applicationId);
-			ClosureDocumentEntity.setAttachementUrl(documentPath);
-			ClosureDocumentEntity.setAttachement(fileName);
-			ClosureDocumentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
-			ClosureDocumentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
-			docrepository.save(ClosureDocumentEntity);
-		} else {
-			oldEntity.setAttachementUrl(documentPath);
-			oldEntity.setAttachement(fileName);
-			docrepository.save(oldEntity);
+			ClosureDocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
+					EkycConstants.DOC_CLOSURE_ESIGN);
+			if (oldEntity == null) {
+				ClosureDocumentEntity ClosureDocumentEntity = new ClosureDocumentEntity();
+				ClosureDocumentEntity.setApplicationId(applicationId);
+				ClosureDocumentEntity.setAttachementUrl(documentPath);
+				ClosureDocumentEntity.setAttachement(fileName);
+				ClosureDocumentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
+				ClosureDocumentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
+				docrepository.save(ClosureDocumentEntity);
+			} else {
+				oldEntity.setAttachementUrl(documentPath);
+				oldEntity.setAttachement(fileName);
+				docrepository.save(oldEntity);
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "saveEsignDocumntDetails", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "saveEsignDocumntDetails", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 		}
-	} catch (Exception e) {
-        logger.error("An error occurred: " + e.getMessage());
-        commonMethods.sendErrorMail(
-                "An error occurred while processing your request, In ClosureService-saveEsignDocumntDetails for the Error: " + e.getMessage(),
-                "ERR-001");
-    }
 	}
-
-
-
-	@Override
-	public ResponseModel closuremailotp(String EmailID,String MobileNo) {
-	    ResponseModel responseModel = new ResponseModel();
-	    try {
-	        if (MobileNo != null&&EmailID!=null) {
-	            commonMethods.sendClosureMail(EmailID);
-	            closureHelper.sendClosureOtp(MobileNo);
-	            if (responseModel != null) {
-	                responseModel.setMessage(EkycConstants.SUCCESS_MSG);
-	                responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-	            }
-	        }
-	    } catch (Exception e) {
-	        logger.error("An error occurred: " + e.getMessage());
-	        commonMethods.sendErrorMail(
-	                "An error occurred while processing your request, In ClosureService-closuremailotp for the Error: " + e.getMessage(),
-	                "ERR-001");
-	        responseModel = commonMethods.constructFailedMsg(e.getMessage());
-	    }
-	    return responseModel;
-	}
-
-
-
-	
-	
 }

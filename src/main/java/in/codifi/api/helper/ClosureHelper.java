@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 
 import in.codifi.api.restservice.SmsRestService;
 import in.codifi.api.utilities.CommonMethods;
+import in.codifi.api.utilities.EkycConstants;
 
 @ApplicationScoped
 public class ClosureHelper {
@@ -31,10 +32,7 @@ public class ClosureHelper {
 			smsRestService.sendOTPtoMobile(otp,mobileNo);
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(
-					"An error occurred while processing your request, In ClosureHelper-sendClosureOtp for the Error: "
-							+ e.getMessage(),
-					"ERR-001");
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_HELPER,"sendClosureOtp",e.getMessage(),EkycConstants.CLOSURE_ERROR_CODE);
 		}
 	}
 

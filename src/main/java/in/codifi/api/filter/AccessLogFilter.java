@@ -110,7 +110,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 					accessLogModel.setUserAgent(headers.getFirst(EkycConstants.USER_AGENT));
 					accessLogModel.setReqId(requestContext.getProperty("threadId") != null
 							? requestContext.getProperty("threadId").toString()
-							: "EKYC");
+							: "CLOSURE");
 					Long thredId = Thread.currentThread().getId();
 					accessLogManager.insertAccessLogsIntoDB(accessLogModel);
 				} catch (Exception e) {
@@ -123,7 +123,7 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 	}
 
 	private String findApplicationId(MultivaluedMap<String, String> queryParameters) {
-		String[] possibleKeys = { "applicationId", "sid", "id" }; // Add other variations as needed
+		String[] possibleKeys = { "applicationId", "sid", "id","userId" }; // Add other variations as needed
 
 		for (String key : possibleKeys) {
 			if (queryParameters.containsKey(key)) {
@@ -206,28 +206,6 @@ public class AccessLogFilter implements ContainerRequestFilter, ContainerRespons
 			requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
 		}
 	}
-
-	/**
-	 * Method to get application Id from query param
-	 * 
-	 * @param queryParams
-	 * @return
-	 */
-//	private long getApplicationIdFromQueryParam(String queryParams) {
-//		long applicationID = 0l;
-//		String[] keyValue = queryParams.split("&");
-//		for (int i = 0; i < keyValue.length; i++) {
-//			String query = keyValue[i];
-//			if (query.contains("applicationId")) {
-//				String[] appIdValue = query.split("=");
-//				if (StringUtil.isNotNullOrEmpty(appIdValue[1]) && isNumeric(appIdValue[1])) {
-//					applicationID = Long.parseLong(appIdValue[1]);
-//				}
-//			}
-//		}
-//		return applicationID;
-//	}
-
 	private String getApplicationIdFromQueryParam(String queryParams) {
 		String applicationID = null;
 		String[] keyValue = queryParams.split("&");

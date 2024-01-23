@@ -66,7 +66,7 @@ public class CommonMail {
 				message.setContent(multipart);
 				Transport.send(message);
 				success = EkycConstants.SUCCESS_MSG;
-				//commonMethods.storeEmailLog(msg, subject, success, "sendMail", mailIds);
+				commonMethods.storeEmailLog(msg, subject, success, "sendMail", mailIds);
 			} catch (MessagingException ex) {
 				ex.printStackTrace();
 			}

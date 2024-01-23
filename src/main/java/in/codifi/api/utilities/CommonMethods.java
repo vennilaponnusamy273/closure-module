@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import javax.mail.MessagingException;
 
 import in.codifi.api.config.ApplicationProperties;
+import in.codifi.api.entity.ClosureEmailLogEntity;
 import in.codifi.api.entity.ClosureEmailTemplateEntity;
 import in.codifi.api.entity.ClosureErrorLogEntity;
 import in.codifi.api.entity.ClosureSmsLogEntity;
@@ -55,6 +56,10 @@ public class CommonMethods {
 		return model;
 	}
 	
+	public  void sendErrorMail(String serviceName, String methodName, String errorMessage, String errorCode) {
+        String errorContent = "An error occurred in " + serviceName + ", in " + methodName + " for the error: " + errorMessage;
+        sendErrorMailContent(errorContent,errorCode);
+    }
 
 	/**
 	 * Method to send Error message to mail
@@ -63,7 +68,7 @@ public class CommonMethods {
 	 * @param errorMessage
 	 * @param errorCode
 	 */
-	public void sendErrorMail(String errorMessage, String errorCode) {
+	public void sendErrorMailContent(String errorMessage, String errorCode) {
 		ClosureEmailTemplateEntity emailTemplateEntity = emailTemplateRepository.findByKeyData("error");
 		if (emailTemplateEntity != null && emailTemplateEntity.getBody() != null
 				&& emailTemplateEntity.getSubject() != null && emailTemplateEntity.getToAddress() != null) {
@@ -152,7 +157,7 @@ public class CommonMethods {
 	public void sendEsignClosureMail(String emailId) throws MessagingException {
 		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("EsignClosure");
 		try {
-			System.out.println("tje sendEsignClosureMail");
+			System.out.println("The sendEsignClosureMail is Running");
 			List<String> toAdd = new ArrayList<>();
 			toAdd.add(emailId);
 			String body_Message = emailTempentity.getBody();
@@ -193,6 +198,35 @@ public class CommonMethods {
 			smsLogEntity.setRequestLog(request);
 			smsLogEntity.setResponseLog(smsResponse);
 			smsLogRepository.save(smsLogEntity);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Method to create storeEmailLog
+	 * 
+	 * @author Vennila
+	 * @param EmailLogEntity
+	 * @return
+	 */
+
+	public void storeEmailLog(String message, String ReqSub, String emailResponse, String logMethod,
+			List<String> mailIds) {
+		if (message == null || emailResponse == null || logMethod == null) {
+			throw new IllegalArgumentException("Request, EmailResponse, or logMethod cannot be null.");
+		}
+
+		try {
+			for (String mailId : mailIds) {
+				ClosureEmailLogEntity emailLogEntity = new ClosureEmailLogEntity();
+				emailLogEntity.setEmailId(mailId);
+				emailLogEntity.setLogMethod(logMethod);
+				emailLogEntity.setReqLogSub(ReqSub);
+				emailLogEntity.setReqLog(message);
+				emailLogEntity.setResponseLog(emailResponse);
+				emailLogRepository.save(emailLogEntity);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

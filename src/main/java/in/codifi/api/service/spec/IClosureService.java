@@ -9,7 +9,7 @@ import in.codifi.api.model.ResponseModel;
 public interface IClosureService {
 
 	/**
-	 * method to CheckPositionHoldandfunds 
+	 * method to CheckPositionHoldandfunds
 	 * 
 	 * @author Vennila
 	 * 
@@ -18,6 +18,15 @@ public interface IClosureService {
 	 */
 	ResponseModel CheckPositionHoldandfunds(String Token);
 
+	/**
+	 * method to uploadCmRCopy
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param Token
+	 * @return
+	 */
+
 	ResponseModel UploadCMR(FormDataModel fileModel);
 
 	/**
@@ -25,10 +34,10 @@ public interface IClosureService {
 	 * 
 	 * @author Vennila
 	 * 
-	 * @param Token
+	 * @param Token,DpID
 	 * @return
 	 */
-	Response GeneratePdf(String token,String dpId);
+	Response GeneratePdf(String token, String dpId);
 
 	/**
 	 * method to getDpDetails
@@ -38,18 +47,51 @@ public interface IClosureService {
 	 * @param Token
 	 * @return
 	 */
-	
+
 	ResponseModel getDpDetails(String token);
+
+	/**
+	 * method to getRekycLogs
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param userId
+	 * @return
+	 */
 
 	ResponseModel getRekycLogs(String userId);
 
+	/**
+	 * method to updateAccTypeReason
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param userId,accType,accCloseReason
+	 * @return
+	 */
+
 	ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason);
+
+	/**
+	 * method to getNsdlXml
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param msg
+	 * @return
+	 */
 
 	Response getNsdlXml(String msg);
 
+	/**
+	 * method to generateEsign
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param PdfApplicationDataModel
+	 * @return
+	 */
+
 	ResponseModel generateEsign(PdfApplicationDataModel pdfModel);
-
-
-	ResponseModel closuremailotp(String EmailID, String MobileNo);
 
 }
