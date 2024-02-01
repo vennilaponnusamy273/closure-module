@@ -1,5 +1,6 @@
 package in.codifi.api.service;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
@@ -24,12 +26,16 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.json.JSONObject;
@@ -237,12 +243,14 @@ public class ClosureService implements IClosureService {// Closure
 						closurelogEntity = new ClosurelogEntity();
 						closurelogEntity.setUserId(dpResult.getUserId());
 					}
-					String dpId = dpResult.getDpCode();
+					String dpId = dpResult.getDpId();
 					if (dpId != null) {
 						if (dpId.startsWith("120")) {
 							closurelogEntity.setCdsl(1);
+							dpId=dpResult.getDpCode(); 
 						} else if (dpId.startsWith("IN")) {
 							closurelogEntity.setNsdl(1);
+							 dpId =dpResult.getDpId()+dpResult.getDpCode(); 
 						}
 						String existingDpId = closurelogEntity.getDpId();
 						if (existingDpId == null || !existingDpId.contains(dpId)) {
@@ -446,7 +454,7 @@ public class ClosureService implements IClosureService {// Closure
 
 				List<ClosureNSDLandCSDLEntity> pdfDatas = closureNSDLandCSDLRepository.getCoordinates();
 				pdfInsertCoordinates(document, pdfDatas, map, clientBasicData);
-
+				addCMRSIGNDoc(clientBasicData.getTermCode(),document);
 				String fileName = dpId + EkycConstants.PDF_EXTENSION;
 				document.save(outputPath + slash + fileName);
 				document.close();
@@ -468,6 +476,76 @@ public class ClosureService implements IClosureService {// Closure
 		}
 		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND).build();
 	}
+
+	private void addCMRSIGNDoc(String termCode, PDDocument document) throws IOException {
+	    ClosureDocumentEntity oldRecordCMR = docrepository.findByApplicationIdAndDocumentType(
+	            termCode, EkycConstants.CMR_COPY);
+	    ClosureDocumentEntity oldRecordsign = docrepository.findByApplicationIdAndDocumentType(
+	            termCode, EkycConstants.CLOSURE_SIGN);
+
+	    // Create a list to iterate through the entities
+	    List<ClosureDocumentEntity> entities = Arrays.asList(oldRecordCMR, oldRecordsign);
+
+	    for (ClosureDocumentEntity entity : entities) {
+	        if (entity != null) {
+	            String attachmentUrl = entity.getAttachementUrl();
+
+	            // Print or process the attachmentUrl as needed
+	            System.out.println("Attachment URL: " + attachmentUrl);
+
+	            if (attachmentUrl != null) {
+	                if (attachmentUrl.toLowerCase().endsWith(".pdf")) {
+	                    try (PDDocument attachment = PDDocument.load(new File(attachmentUrl))) {
+	                        PDFMergerUtility merger = new PDFMergerUtility();
+	                        PDDocument combine = PDDocument.load(new File(attachmentUrl));
+
+	                        // Adjust the width of the appended document
+	                        adjustWidth(combine, document);
+
+	                        merger.appendDocument(document, combine);
+	                        merger.mergeDocuments();
+	                        combine.close();
+	                    }
+	                } else {
+	                    attachImage(document, attachmentUrl);
+	                }
+	            }
+	        }
+	    }
+	}
+	private void adjustWidth(PDDocument sourceDocument, PDDocument targetDocument) {
+	    if (sourceDocument.getNumberOfPages() > 0) {
+	        // Get the first page of the source document
+	        PDPage sourcePage = sourceDocument.getPage(0);
+
+	        // Adjust the width of the target document's first page
+	        PDPage targetPage = targetDocument.getPage(0);
+	        targetPage.setMediaBox(sourcePage.getMediaBox());
+	    }
+	}
+
+	private void attachImage(PDDocument document, String imagePath) throws IOException {
+	    BufferedImage image = ImageIO.read(new File(imagePath));
+
+	    if (image != null) {
+	        PDPage page = new PDPage();
+	        document.addPage(page);
+	        PDRectangle pageSize = page.getMediaBox();
+	        float maxWidth = pageSize.getWidth() * 0.8f;
+	        float maxHeight = pageSize.getHeight() * 0.8f;
+	        float aspectRatio = (float) image.getWidth() / (float) image.getHeight();
+	        float imageWidth = Math.min(maxWidth, maxHeight * aspectRatio);
+	        float imageHeight = Math.min(maxHeight, maxWidth / aspectRatio);
+	        float centerX = (pageSize.getWidth() - imageWidth) / 2f;
+	        float centerY = (pageSize.getHeight() - imageHeight) / 2f;
+
+	        PDImageXObject importedPage = JPEGFactory.createFromImage(document, image, 0.5f);
+	        try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+	            contentStream.drawImage(importedPage, centerX, centerY, imageWidth, imageHeight);
+	        }
+	    }
+	}
+
 
 	public void pdfInsertCoordinates(PDDocument document, List<ClosureNSDLandCSDLEntity> pdfDatas,
 			HashMap<String, String> map, ClientBasicData clientBasicData) {
@@ -541,7 +619,7 @@ public class ClosureService implements IClosureService {// Closure
 		}
 	}
 
-	private HashMap<String, String> mapping(ClientBasicData clientBasicData, String dpId1) {
+	private HashMap<String, String> mapping(ClientBasicData clientBasicData, String dpId16) {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date = new Date();
@@ -560,12 +638,15 @@ public class ClosureService implements IClosureService {// Closure
 		map.put("Date6", String.valueOf(formattedDate.charAt(7))); // Year
 		map.put("Date7", String.valueOf(formattedDate.charAt(8))); // Separator (-)
 		map.put("Date8", String.valueOf(formattedDate.charAt(9))); // Separator (-)
-		String dpId = dpId1.substring(0, 8);
+		String dpIdDefault=null;
+		String dpId = dpId16.substring(0, 8);
 		if (dpId != null) {
 			if (dpId.startsWith("120")) {
+				dpIdDefault=dpId16.substring(8, 16);
 				map.put("CSDLPDF", "CSDLPDF");
 				map.put("CDSL", dpId);
 			} else if (dpId.startsWith("IN")) {
+				dpIdDefault=dpId16.substring(8, 16);
 				map.put("NSDLPDF", "NSDLPDF");
 				map.put("NSDL", dpId);
 			}
@@ -584,28 +665,65 @@ public class ClosureService implements IClosureService {// Closure
 			map.put("TRADING ID:9", String.valueOf(tradingId.charAt(8)));
 			map.put("TRADING ID:10", String.valueOf(tradingId.charAt(9)));
 		}
+	
+		if (dpIdDefault != null && dpIdDefault.length() >=8) {
+			map.put("DP ID1", String.valueOf(dpIdDefault.charAt(0)));
+			map.put("DP ID2", String.valueOf(dpIdDefault.charAt(1)));
+			map.put("DP ID3", String.valueOf(dpIdDefault.charAt(2)));
+			map.put("DP ID4", String.valueOf(dpIdDefault.charAt(3)));
+			map.put("DP ID5", String.valueOf(dpIdDefault.charAt(4)));
+			map.put("DP ID6", String.valueOf(dpIdDefault.charAt(5)));
+			map.put("DP ID7", String.valueOf(dpIdDefault.charAt(6)));
+			map.put("DP ID8", String.valueOf(dpIdDefault.charAt(7)));
+		}
 		String clientId = clientBasicData.getTermCode();
-		if (clientId != null && clientId.length() >= 6) {
-			map.put("Client ID1", String.valueOf(clientId.charAt(0)));
-			map.put("Client ID2", String.valueOf(clientId.charAt(1)));
-			map.put("Client ID3", String.valueOf(clientId.charAt(2)));
-			map.put("Client ID4", String.valueOf(clientId.charAt(3)));
-			map.put("Client ID5", String.valueOf(clientId.charAt(4)));
-			map.put("Client ID6", String.valueOf(clientId.charAt(5)));
+		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientId);
+		String getDpIDs=closurelogEntity.getDpId();
+		String TargetDPID=null;
+		if (getDpIDs != null) {
+		    String[] dpIdsArray = getDpIDs.split(",");
+		    for (String targetdpId : dpIdsArray) {
+		        if (!targetdpId.equals(dpId16)) {
+		        	TargetDPID=targetdpId;
+		            break;
+		        }
+		    }
+		}
+		System.out.println("the TargetDPID"+TargetDPID);
+		if (TargetDPID != null && TargetDPID.length() >= 16) {
+			map.put("Client ID1*", String.valueOf(TargetDPID.charAt(0)));
+			map.put("Client ID2*", String.valueOf(TargetDPID.charAt(1)));
+			map.put("Client ID3*", String.valueOf(TargetDPID.charAt(2)));
+			map.put("Client ID4*", String.valueOf(TargetDPID.charAt(3)));
+			map.put("Client ID5*", String.valueOf(TargetDPID.charAt(4)));
+			map.put("Client ID6*", String.valueOf(TargetDPID.charAt(5)));
+			map.put("Client ID7*", String.valueOf(TargetDPID.charAt(6)));
+			map.put("Client ID8*", String.valueOf(TargetDPID.charAt(7)));
+			
+			map.put("Client ID1", String.valueOf(TargetDPID.charAt(8)));
+			map.put("Client ID2", String.valueOf(TargetDPID.charAt(9)));
+			map.put("Client ID3", String.valueOf(TargetDPID.charAt(10)));
+			map.put("Client ID4", String.valueOf(TargetDPID.charAt(11)));
+			map.put("Client ID5", String.valueOf(TargetDPID.charAt(12)));
+			map.put("Client ID6", String.valueOf(TargetDPID.charAt(13)));
+			map.put("Client ID7", String.valueOf(TargetDPID.charAt(14)));
+			map.put("Client ID8", String.valueOf(TargetDPID.charAt(15)));
 		}
 
+		
+		
 		if (dpId != null && dpId.length() >= 8) {
-			map.put("DP ID1", String.valueOf(dpId.charAt(0)));
-			map.put("DP ID2", String.valueOf(dpId.charAt(1)));
-			map.put("DP ID3", String.valueOf(dpId.charAt(2)));
-			map.put("DP ID4", String.valueOf(dpId.charAt(3)));
-			map.put("DP ID5", String.valueOf(dpId.charAt(4)));
-			map.put("DP ID6", String.valueOf(dpId.charAt(5)));
-			map.put("DP ID7", String.valueOf(dpId.charAt(6)));
-			map.put("DP ID8", String.valueOf(dpId.charAt(7)));
+			map.put("DP ID1*", String.valueOf(dpId.charAt(0)));
+			map.put("DP ID2*", String.valueOf(dpId.charAt(1)));
+			map.put("DP ID3*", String.valueOf(dpId.charAt(2)));
+			map.put("DP ID4*", String.valueOf(dpId.charAt(3)));
+			map.put("DP ID5*", String.valueOf(dpId.charAt(4)));
+			map.put("DP ID6*", String.valueOf(dpId.charAt(5)));
+			map.put("DP ID7*", String.valueOf(dpId.charAt(6)));
+			map.put("DP ID8*", String.valueOf(dpId.charAt(7)));
 		}
 
-		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
+		//ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientBasicData.getTermCode());
 		if (closurelogEntity != null && closurelogEntity.getAccType() > 0) {
 			if (closurelogEntity.getAccType() == 1) {
 				map.put("Both Trading And Demat", "1");
