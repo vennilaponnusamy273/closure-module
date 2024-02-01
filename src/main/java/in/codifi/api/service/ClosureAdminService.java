@@ -101,7 +101,7 @@ public class ClosureAdminService implements IClosureAdminService {
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 			if (closurelogEntity != null) {
-				closurelogEntity.setAdminstatus(0);
+				closurelogEntity.setAdminstatus(3);
 				closurelogEntity.setRejectedReason("");
 				closurelogRepository.save(closurelogEntity);
 				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
