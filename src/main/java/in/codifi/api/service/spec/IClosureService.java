@@ -71,7 +71,7 @@ public interface IClosureService {
 	 * @return
 	 */
 
-	ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason);
+	ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason,String TargetDpID);
 
 	/**
 	 * method to getNsdlXml

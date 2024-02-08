@@ -680,16 +680,16 @@ public class ClosureService implements IClosureService {// Closure
 		String clientId = clientBasicData.getTermCode();
 		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientId);
 		String getDpIDs=closurelogEntity.getDpId();
-		String TargetDPID=null;
-		if (getDpIDs != null) {
-		    String[] dpIdsArray = getDpIDs.split(",");
-		    for (String targetdpId : dpIdsArray) {
-		        if (!targetdpId.equals(dpId16)) {
-		        	TargetDPID=targetdpId;
-		            break;
-		        }
-		    }
-		}
+		String TargetDPID=closurelogEntity.getTargetDpID();
+//		if (getDpIDs != null) {
+//		    String[] dpIdsArray = getDpIDs.split(",");
+//		    for (String targetdpId : dpIdsArray) {
+//		        if (!targetdpId.equals(dpId16)) {
+//		        	TargetDPID=targetdpId;
+//		            break;
+//		        }
+//		    }
+//		}
 		System.out.println("the TargetDPID"+TargetDPID);
 		if (TargetDPID != null && TargetDPID.length() >= 16) {
 			map.put("Client ID1*", String.valueOf(TargetDPID.charAt(0)));
@@ -775,7 +775,7 @@ public class ClosureService implements IClosureService {// Closure
 	}
 
 	@Override
-	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason) {
+	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason,String TargetDpID) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
@@ -786,6 +786,7 @@ public class ClosureService implements IClosureService {// Closure
 			}
 
 			closurelogEntity.setAccType(accType);
+			closurelogEntity.setTargetDpID(TargetDpID);
 			closurelogEntity.setAccclosingreasion(accCloseReason);
 			closurelogRepository.save(closurelogEntity);
 			responseModel.setMessage(EkycConstants.SUCCESS_MSG);

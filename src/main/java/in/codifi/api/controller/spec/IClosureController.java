@@ -69,7 +69,7 @@ public interface IClosureController {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	ResponseModel updateAccTypeReason(@NotNull @QueryParam("UserId")String UserId,@NotNull @QueryParam("accType") int accType,@NotNull @QueryParam("accCloseReason")String accCloseReason);
+	ResponseModel updateAccTypeReason(@NotNull @QueryParam("UserId")String UserId,@NotNull @QueryParam("accType") int accType,@NotNull @QueryParam("accCloseReason")String accCloseReason,@QueryParam("TargetDpID") String TargetDpID);
 	
 	@Path("/generateEsign")
 	@POST

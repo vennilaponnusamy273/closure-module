@@ -177,5 +177,9 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	private int adminstatus;
 	
 	@Column(name = "RejectedReason")
-	private String RejectedReason;	
+	private String RejectedReason;
+	
+	
+	@Column(name = "TargetDpId")
+	private String TargetDpId;	
 }
