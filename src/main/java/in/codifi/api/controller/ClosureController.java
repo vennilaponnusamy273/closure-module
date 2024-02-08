@@ -1,6 +1,7 @@
 package in.codifi.api.controller;
 
 import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
@@ -125,6 +126,17 @@ public class ClosureController implements IClosureController {
 			return closureService.getNsdlXml(msg);
 		} else {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.XML_MSG_NULL).build();
+		}
+	}
+	
+	
+	@Override
+	public Response getCMR(@NotNull String UserId, @NotNull String type) {
+		if (UserId !=null && type!=null) {
+			return closureService.getCMR(UserId, type);
+		} else {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.PARAMETER_NULL)
+					.build();
 		}
 	}
 }

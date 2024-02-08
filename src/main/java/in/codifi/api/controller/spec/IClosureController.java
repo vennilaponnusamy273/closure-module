@@ -83,5 +83,12 @@ public interface IClosureController {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@APIResponse(description = "Test")
 	Response getNsdlXml(@FormParam("msg") String msg);
+	
+	@Path("/getCMRFile")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@APIResponse(description = "Method to downloadFile document ")
+	public Response getCMR(@NotNull @QueryParam("UserId") String UserId,
+			@NotNull @QueryParam("documentType") String type);
 
 }

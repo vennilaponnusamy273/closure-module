@@ -19,6 +19,7 @@ import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.mail.MessagingException;
 import javax.transaction.Transactional;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.xml.parsers.DocumentBuilder;
@@ -957,6 +958,39 @@ public class ClosureService implements IClosureService {// Closure
 			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "saveEsignDocumntDetails", e.getMessage());
 			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "saveEsignDocumntDetails", e.getMessage(),
 					EkycConstants.CLOSURE_ERROR_CODE);
+		}
+	}
+	
+	
+	@Override
+	public Response getCMR(@NotNull String applicationId, @NotNull String type) {
+		try {
+			String attachmentType = null;
+			String slash = EkycConstants.UBUNTU_FILE_SEPERATOR;
+			if (OS.contains(EkycConstants.OS_WINDOWS)) {
+				slash = EkycConstants.WINDOWS_FILE_SEPERATOR;
+			}
+			ClosureDocumentEntity document = docrepository.findByApplicationIdAndDocumentType(applicationId, type);
+			if (document == null) {
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND)
+						.build();
+			}
+			attachmentType = document.getAttachement();
+			if (StringUtil.isNotNullOrEmpty(attachmentType)) {
+				String path = props.getFileBasePath() + applicationId + slash + attachmentType;
+				//String path=document.getAttachementUrl();
+				System.out.println("the path" + path);
+				File file = new File(path);
+				String contentType = URLConnection.guessContentTypeFromName(attachmentType);
+				return Response.ok(file).type(contentType)
+						.header("Content-Disposition", "attachment; filename=" + file.getName()).build();
+			} else {
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.FILE_NOT_FOUND)
+						.build();
+			}
+		} catch (Exception e) {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+					.entity("Failed to download file: " + e.getMessage()).build();
 		}
 	}
 }
