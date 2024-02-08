@@ -765,6 +765,8 @@ public class ClosureService implements IClosureService {// Closure
 		ResponseModel responseModel = new ResponseModel();
 		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 		if (closurelogEntity != null) {
+			String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : ((closurelogEntity.getAdminstatus() == 2) ? "Rejected" : "");
+			
 			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
 			responseModel.setResult(closurelogEntity);
@@ -784,7 +786,6 @@ public class ClosureService implements IClosureService {// Closure
 				closurelogEntity = new ClosurelogEntity();
 				closurelogEntity.setUserId(userId);
 			}
-
 			closurelogEntity.setAccType(accType);
 			closurelogEntity.setTargetDpID(TargetDpID);
 			closurelogEntity.setAccclosingreasion(accCloseReason);
@@ -978,8 +979,8 @@ public class ClosureService implements IClosureService {// Closure
 			}
 			attachmentType = document.getAttachement();
 			if (StringUtil.isNotNullOrEmpty(attachmentType)) {
-				String path = props.getFileBasePath() + applicationId + slash + attachmentType;
-				//String path=document.getAttachementUrl();
+				//String path = props.getFileBasePath() + applicationId + slash + attachmentType;
+				String path=document.getAttachementUrl();
 				System.out.println("the path" + path);
 				File file = new File(path);
 				String contentType = URLConnection.guessContentTypeFromName(attachmentType);

@@ -1,5 +1,6 @@
 package in.codifi.api.service.spec;
 
+import in.codifi.api.model.LogsRequestModel;
 import in.codifi.api.model.ResponseModel;
 
 public interface IClosureAdminService {
@@ -45,4 +46,6 @@ public interface IClosureAdminService {
 	 */
 
 	ResponseModel getClosureStatus(String userId);
+	
+	ResponseModel getClosureLogs(LogsRequestModel logsRequestModel);
 }

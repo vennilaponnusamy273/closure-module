@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import in.codifi.api.controller.spec.IClosureAdminController;
+import in.codifi.api.model.LogsRequestModel;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.service.spec.IClosureAdminService;
 import in.codifi.api.utilities.CommonMethods;
@@ -27,9 +28,9 @@ public class ClosureAdminController implements IClosureAdminController {
 	public ResponseModel updateClosureStatus(int status, String userId, String rejectedReason) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-			if (status != 0 && status != 1) {
+			if (status != 1 && status != 2) {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.CLOSURE_STATUS_EXCEPTION);
-			} else if (status == 0 && (rejectedReason == null || rejectedReason.isEmpty())) {
+			} else if (status == 2 && (rejectedReason == null || rejectedReason.isEmpty())) {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.REJECTION_REASON_MANDATORY);
 			} else {
 				if (userId != null) {
@@ -79,5 +80,20 @@ public class ClosureAdminController implements IClosureAdminController {
 			responseModel = commonMethods.constructFailedMsg(e.getMessage());
 		}
 		return responseModel;
+	}
+	
+	@Override
+	public ResponseModel getClosureLogs(LogsRequestModel logsRequestModel) {
+		ResponseModel response = new ResponseModel();
+		try {
+			if (logsRequestModel!=null) {
+				response = IclosureAdminService.getClosureLogs(logsRequestModel);
+			} else {
+				response = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+			}
+		} catch (Exception e) {
+			response = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return response;
 	}
 }

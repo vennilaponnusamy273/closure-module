@@ -1,7 +1,13 @@
 package in.codifi.api.service;
 
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -12,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import in.codifi.api.entity.ClosurelogEntity;
 import in.codifi.api.helper.ClosureHelper;
+import in.codifi.api.model.LogsRequestModel;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosurelogRepository;
 import in.codifi.api.service.spec.IClosureAdminService;
@@ -45,7 +52,7 @@ public class ClosureAdminService implements IClosureAdminService {
 			}
 
 			closurelogEntity.setAdminstatus(status);
-			closurelogEntity.setRejectedReason(status == 0 ? rejectedReason : "");
+			closurelogEntity.setRejectedReason(status == 2 ? rejectedReason : "");
 
 			// Save or update the closure status entity
 			closurelogRepository.save(closurelogEntity);
@@ -101,7 +108,7 @@ public class ClosureAdminService implements IClosureAdminService {
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 			if (closurelogEntity != null) {
-				closurelogEntity.setAdminstatus(3);
+				closurelogEntity.setAdminstatus(0);
 				closurelogEntity.setRejectedReason("");
 				closurelogRepository.save(closurelogEntity);
 				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
@@ -144,4 +151,89 @@ public class ClosureAdminService implements IClosureAdminService {
 		}
 		return responseModel;
 	}
+
+	@Override
+	public ResponseModel getClosureLogs(LogsRequestModel logsRequestModel) {
+	    ResponseModel responseModel = new ResponseModel();
+
+	    try {
+	        List<ClosurelogEntity> closurelogEntities = null;
+	        String from = logsRequestModel.getFromDate();
+	        String to = logsRequestModel.getToDate();
+	        DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+	        // Parse into LocalDateTime instead of LocalDate
+	        LocalDateTime fromDateTime = LocalDateTime.parse(from, inputFormatter);
+	        LocalDateTime toDateTime = LocalDateTime.parse(to, inputFormatter);
+
+	        // Convert LocalDateTime to java.util.Date
+	        Date fromDate = Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant());
+	        Date toDate = Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+	        if (logsRequestModel.getUserId() != null) {
+	            closurelogEntities = closurelogRepository.findByUserIdAndDate(logsRequestModel.getUserId(), fromDate, toDate);
+	        } else {
+	            closurelogEntities = closurelogRepository.findByDate(fromDate, toDate);
+	        }
+
+	        // Check if closure logs are found
+	        if (closurelogEntities != null && !closurelogEntities.isEmpty()) {
+	            responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	            responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+
+	            // Extract details for the response
+	            List<Map<String, Object>> resultList = new ArrayList<>();
+
+	            for (ClosurelogEntity closurelogEntity : closurelogEntities) {
+	                Map<String, Object> resultDetails = new HashMap<>();
+
+	                String firstName = closurelogEntity.getFirstName();
+	                String middleName = closurelogEntity.getMiddleName();
+	                String lastName = closurelogEntity.getLastName();
+
+	                String name = "";
+
+	                if (firstName != null && !firstName.isEmpty()) {
+	                    name += firstName;
+	                }
+
+	                if (middleName != null && !middleName.isEmpty()) {
+	                    if (!name.isEmpty()) {
+	                        name += " ";
+	                    }
+	                    name += middleName;
+	                }
+
+	                if (lastName != null && !lastName.isEmpty()) {
+	                    if (!name.isEmpty()) {
+	                        name += " ";
+	                    }
+	                    name += lastName;
+	                }
+
+	                String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : ((closurelogEntity.getAdminstatus() == 2) ? "Rejected" : "");
+
+	                resultDetails.put("UserID", closurelogEntity.getUserId());
+	                resultDetails.put("Name", name);
+	                resultDetails.put("Status", status);
+
+	                resultList.add(resultDetails);
+	            }
+
+	            responseModel.setResult(resultList);
+	        } else {
+	            responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
+	        }
+
+	        return responseModel;
+
+	    } catch (Exception e) {
+	        logger.error("An error occurred: " + e.getMessage());
+	        responseModel = commonMethods.constructFailedMsg(e.getMessage());
+	        e.printStackTrace();
+	    }
+
+	    return responseModel;
+	}
+
 }
