@@ -881,7 +881,8 @@ public class ClosureService implements IClosureService {// Closure
 										+ EkycConstants.PDF_EXTENSION;
 								String path = filePath + slash + esignedFileName;
 								closureMail(detailsEntity.getEmailID());
-								saveEsignDocumntDetails(detailsEntity.getApplicationId(), path, esignedFileName);
+								String DocumentType=detailsEntity.getDpId()+"_"+EkycConstants.DOC_CLOSURE_ESIGN;
+								saveEsignDocumntDetails(detailsEntity.getApplicationId(), path, esignedFileName,DocumentType);
 								java.net.URI finalPage = new java.net.URI(EkycConstants.SITE_URL_FILE);
 								Response.ResponseBuilder responseBuilder = Response
 										.status(Response.Status.MOVED_PERMANENTLY).location(finalPage);
@@ -938,16 +939,16 @@ public class ClosureService implements IClosureService {// Closure
 
 	}
 
-	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName) {
+	public void saveEsignDocumntDetails(String applicationId, String documentPath, String fileName,String DocumentType) {
 		try {
 			ClosureDocumentEntity oldEntity = docrepository.findByApplicationIdAndDocumentType(applicationId,
-					EkycConstants.DOC_CLOSURE_ESIGN);
+					DocumentType);
 			if (oldEntity == null) {
 				ClosureDocumentEntity ClosureDocumentEntity = new ClosureDocumentEntity();
 				ClosureDocumentEntity.setApplicationId(applicationId);
 				ClosureDocumentEntity.setAttachementUrl(documentPath);
 				ClosureDocumentEntity.setAttachement(fileName);
-				ClosureDocumentEntity.setDocumentType(EkycConstants.DOC_CLOSURE_ESIGN);
+				ClosureDocumentEntity.setDocumentType(DocumentType);
 				ClosureDocumentEntity.setTypeOfProof(EkycConstants.DOC_CLOSURE_ESIGN);
 				docrepository.save(ClosureDocumentEntity);
 			} else {
