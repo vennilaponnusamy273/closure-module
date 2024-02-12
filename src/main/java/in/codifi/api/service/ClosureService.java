@@ -238,32 +238,32 @@ public class ClosureService implements IClosureService {// Closure
 			String authToken = "Bearer " + token;
 			List<DpResult> dpModel = TradingRestServices.getDpDetails(authToken);
 			if (dpModel != null) {
-				for (DpResult dpResult : dpModel) {
-					ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(dpResult.getUserId());
-					if (closurelogEntity == null) {
-						closurelogEntity = new ClosurelogEntity();
-						closurelogEntity.setUserId(dpResult.getUserId());
-					}
-					String dpId = dpResult.getDpId();
-					if (dpId != null) {
-						if (dpId.startsWith("120")) {
-							closurelogEntity.setCdsl(1);
-							dpId=dpResult.getDpCode(); 
-						} else if (dpId.startsWith("IN")) {
-							closurelogEntity.setNsdl(1);
-							 dpId =dpResult.getDpId()+dpResult.getDpCode(); 
-						}
-						String existingDpId = closurelogEntity.getDpId();
-						if (existingDpId == null || !existingDpId.contains(dpId)) {
-							if (existingDpId != null && !existingDpId.isEmpty()) {
-								closurelogEntity.setDpId(existingDpId + "," + dpId);
-							} else {
-								closurelogEntity.setDpId(dpId);
-							}
-						}
-						closurelogRepository.save(closurelogEntity);
-					}
-				}
+//				for (DpResult dpResult : dpModel) {
+//					//ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(dpResult.getUserId());
+//					if (closurelogEntity == null) {
+//						closurelogEntity = new ClosurelogEntity();
+//						closurelogEntity.setUserId(dpResult.getUserId());
+//					}
+//					String dpId = dpResult.getDpId();
+//					if (dpId != null) {
+//						if (dpId.startsWith("120")) {
+//							closurelogEntity.setCdsl(1);
+//							dpId=dpResult.getDpCode(); 
+//						} else if (dpId.startsWith("IN")) {
+//							closurelogEntity.setNsdl(1);
+//							 dpId =dpResult.getDpId()+dpResult.getDpCode(); 
+//						}
+//						String existingDpId = closurelogEntity.getDpId();
+//						if (existingDpId == null || !existingDpId.contains(dpId)) {
+//							if (existingDpId != null && !existingDpId.isEmpty()) {
+//								closurelogEntity.setDpId(existingDpId + "," + dpId);
+//							} else {
+//								closurelogEntity.setDpId(dpId);
+//							}
+//						}
+//						closurelogRepository.save(closurelogEntity);
+//					}
+//				}
 				response.setResult(dpModel);
 			}
 		} catch (Exception e) {
@@ -765,8 +765,7 @@ public class ClosureService implements IClosureService {// Closure
 		ResponseModel responseModel = new ResponseModel();
 		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 		if (closurelogEntity != null) {
-			String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : ((closurelogEntity.getAdminstatus() == 2) ? "Rejected" : "");
-			
+			//String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : ((closurelogEntity.getAdminstatus() == 2) ? "Rejected" : "");
 			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
 			responseModel.setResult(closurelogEntity);
@@ -777,32 +776,37 @@ public class ClosureService implements IClosureService {// Closure
 	}
 
 	@Override
-	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason,String TargetDpID) {
-		ResponseModel responseModel = new ResponseModel();
-		try {
-			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason, String TargetDpID, String DpId) {
+	    ResponseModel responseModel = new ResponseModel();
+	    try {
+	        ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 
-			if (closurelogEntity == null) {
-				closurelogEntity = new ClosurelogEntity();
-				closurelogEntity.setUserId(userId);
-			}
-			closurelogEntity.setAccType(accType);
-			closurelogEntity.setTargetDpID(TargetDpID);
-			closurelogEntity.setAccclosingreasion(accCloseReason);
-			closurelogRepository.save(closurelogEntity);
-			responseModel.setMessage(EkycConstants.SUCCESS_MSG);
-			responseModel.setStat(EkycConstants.SUCCESS_STATUS);
-			responseModel.setResult(closurelogEntity);
+	        if (closurelogEntity == null) {
+	            closurelogEntity = new ClosurelogEntity();
+	            closurelogEntity.setUserId(userId);
+	        }
 
-		} catch (Exception e) {
-			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage());
-			commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage(),
-					EkycConstants.CLOSURE_ERROR_CODE);
-			responseModel = commonMethods.constructFailedMsg(e.getMessage());
-		}
-		return responseModel;
+	        closurelogEntity.setAccType(accType);
+	        closurelogEntity.setAccclosingreasion(accCloseReason);
+	        closurelogEntity.setTargetDpID(TargetDpID);
+	        closurelogEntity.setDpId(DpId);
+
+	        closurelogRepository.save(closurelogEntity);
+
+	        responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	        responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+	        responseModel.setResult(closurelogEntity);
+	    }
+	  catch (Exception e) {
+	        logger.error("An unexpected error occurred: " + e.getMessage());
+	        commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage());
+	        commonMethods.sendErrorMail(EkycConstants.CLOSURE_SERVICE, "updateAccTypeReason", e.getMessage(),
+	                EkycConstants.CLOSURE_ERROR_CODE);
+	        responseModel = commonMethods.constructFailedMsg("An unexpected error occurred: " + e.getMessage());
+	    }
+	    return responseModel;
 	}
+
 
 	@Override
 	public ResponseModel generateEsign(PdfApplicationDataModel pdfModel) {

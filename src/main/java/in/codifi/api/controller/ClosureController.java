@@ -97,10 +97,10 @@ public class ClosureController implements IClosureController {
 	}
 
 	@Override
-	public ResponseModel updateAccTypeReason(String UserId, int accType, String accCloseReason,String TargetDpID) {
+	public ResponseModel updateAccTypeReason(String UserId, int accType, String accCloseReason,String TargetDpID,String dpID) {
 		ResponseModel responseModel = new ResponseModel();
 		if (UserId != null ) {
-			responseModel = closureService.updateAccTypeReason(UserId,accType,accCloseReason,TargetDpID);
+			responseModel = closureService.updateAccTypeReason(UserId,accType,accCloseReason,TargetDpID,dpID);
 		} else {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
 		}

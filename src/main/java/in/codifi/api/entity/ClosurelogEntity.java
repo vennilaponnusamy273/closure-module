@@ -179,7 +179,4 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	@Column(name = "RejectedReason")
 	private String RejectedReason;
 	
-	
-	@Column(name = "TargetDpId")
-	private String TargetDpId;	
 }
