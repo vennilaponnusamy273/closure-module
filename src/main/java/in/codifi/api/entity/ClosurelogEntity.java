@@ -179,4 +179,10 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	@Column(name = "RejectedReason")
 	private String RejectedReason;
 	
+	@Column(name = "approveOtp")
+	private int approveOtp;
+	
+	@Column(name = "approveOtpverified")
+	private int approveOtpVerified=0;
+	
 }

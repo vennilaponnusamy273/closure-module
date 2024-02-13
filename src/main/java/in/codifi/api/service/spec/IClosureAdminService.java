@@ -24,7 +24,7 @@ public interface IClosureAdminService {
 	 * @return
 	 */
 
-	ResponseModel sendClosureEmailandSmsOtp(String EmailID, String MobileNo);
+	//ResponseModel sendClosureApprovalEmailandSmsOtp(String EmailID, String MobileNo);
 
 	/**
 	 * method to reset the Approval and rejection

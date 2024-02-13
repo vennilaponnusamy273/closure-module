@@ -1,6 +1,7 @@
 package in.codifi.api.controller;
 
 import javax.inject.Inject;
+import javax.mail.MessagingException;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -138,5 +139,10 @@ public class ClosureController implements IClosureController {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(MessageConstants.PARAMETER_NULL)
 					.build();
 		}
+	}
+
+	@Override
+	public void EsignclosureMailAndSms(String UserId, String emailId) throws MessagingException {
+		closureService.EsignclosureMailAndSms(UserId, emailId);
 	}
 }

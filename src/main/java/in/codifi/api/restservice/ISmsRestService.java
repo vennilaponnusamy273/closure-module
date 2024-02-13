@@ -15,7 +15,6 @@ public interface ISmsRestService {
 	/**
 	 * Method to Send SMS OTP
 	 * 
-	 * @author Sowmiya
 	 * @param userId
 	 * @param pass
 	 * @param appId

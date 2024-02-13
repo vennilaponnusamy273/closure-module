@@ -57,10 +57,12 @@ public class Esign {
 		String getXml = getXmlForEsignSinglePage(
 				OutPutPath + applicationId + slash + DpID + EkycConstants.PDF_EXTENSION,
 				applicationId,clientBasicData,DpID);
+		System.out.println("the getXmlForEsignSinglePage&"+getXml);
 		long timeInmillsecods = System.currentTimeMillis();
 		String folderName = String.valueOf(timeInmillsecods);
 		if (getXml != null) {
 			String filePath = props.getFileBasePath() + applicationId + slash + folderName;
+			System.out.println("the getXml"+getXml);
 			toCreateNewXMLFile(filePath, getXml);
 			String txnId = toGetTxnFromXMlpath(filePath + slash + "FirstResponse.xml");
 			if (StringUtil.isNotNullOrEmpty(txnId)) {
@@ -77,6 +79,7 @@ public class Esign {
 				if (savedEntity != null) {
 					StringBuilder buff = new StringBuilder();
 					buff.append(getXml);
+					System.out.println("the buff"+buff);
 					responseModel.setResult(buff);
 					responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 					responseModel.setStat(EkycConstants.SUCCESS_STATUS);

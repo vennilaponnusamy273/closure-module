@@ -59,6 +59,7 @@ import in.codifi.api.repository.ClosureDocumentRepository;
 import in.codifi.api.repository.ClosureNSDLandCSDLRepository;
 import in.codifi.api.repository.ClosureTxnDetailsRepository;
 import in.codifi.api.repository.ClosurelogRepository;
+import in.codifi.api.restservice.SmsRestService;
 import in.codifi.api.service.spec.IClosureService;
 import in.codifi.api.trading.restservice.tradingRestServices;
 import in.codifi.api.utilities.CommonMethods;
@@ -88,6 +89,8 @@ public class ClosureService implements IClosureService {// Closure
 	ClosureTxnDetailsRepository txnDetailsRepository;
 	@Inject
 	Esign esign;
+	@Inject
+	SmsRestService smsRestService;
 
 	@Override
 	public ResponseModel CheckPositionHoldandfunds(String token) {
@@ -463,6 +466,7 @@ public class ClosureService implements IClosureService {// Closure
 				String contentType = URLConnection.guessContentTypeFromName(fileName);
 				String path = outputPath + slash + fileName;
 				File savedFile = new File(path);
+				System.out.println("the path"+path);
 				ResponseBuilder response = Response.ok((Object) savedFile);
 				response.type(contentType);
 				response.header("Content-Disposition", "attachment;filename=" + savedFile.getName());
@@ -884,7 +888,7 @@ public class ClosureService implements IClosureService {// Closure
 								String esignedFileName = detailsEntity.getDpId() + "_signedFinal"
 										+ EkycConstants.PDF_EXTENSION;
 								String path = filePath + slash + esignedFileName;
-								closureMail(detailsEntity.getEmailID());
+								EsignclosureMailAndSms(detailsEntity.getApplicationId(),detailsEntity.getEmailID());
 								String DocumentType=detailsEntity.getDpId()+"_"+EkycConstants.DOC_CLOSURE_ESIGN;
 								saveEsignDocumntDetails(detailsEntity.getApplicationId(), path, esignedFileName,DocumentType);
 								java.net.URI finalPage = new java.net.URI(EkycConstants.SITE_URL_FILE);
@@ -907,10 +911,13 @@ public class ClosureService implements IClosureService {// Closure
 		return null;
 	}
 
-	public void closureMail(String emailID) throws MessagingException {
+	@Override
+	public void EsignclosureMailAndSms(String UserId,String emailID) throws MessagingException {
 		try {
-			if (emailID != null) {
-				commonMethods.sendEsignClosureMail(emailID);
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(UserId);
+			if (emailID != null&&closurelogEntity!=null) {
+				commonMethods.sendEsignClosureMail(closurelogEntity.getNameAsperPan(), UserId,closurelogEntity.getDpId(),emailID);
+				smsRestService.sendEsignSms(UserId, closurelogEntity.getDpId(), closurelogEntity.getMobile());
 			}
 		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());

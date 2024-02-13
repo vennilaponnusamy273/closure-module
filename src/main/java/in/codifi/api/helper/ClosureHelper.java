@@ -6,6 +6,8 @@ import javax.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import in.codifi.api.entity.ClosurelogEntity;
+import in.codifi.api.repository.ClosurelogRepository;
 import in.codifi.api.restservice.SmsRestService;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.EkycConstants;
@@ -17,6 +19,9 @@ public class ClosureHelper {
 	CommonMethods commonMethods;
 	@Inject
 	SmsRestService smsRestService;
+	@Inject
+	ClosurelogRepository closurelogRepository;
+
 	
 	/**
 	 * Method to save User Sms Otp in DB
@@ -25,15 +30,19 @@ public class ClosureHelper {
 	 * @param userEntity
 	 * @return
 	 */
-	public void sendClosureOtp(String mobileNo) {
+	public void sendApprovalClosureSmsOTp(String userID,String mobileNo) {
 		try {
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserIdAndMobile(userID,mobileNo);
+			if(closurelogEntity!=null) {
 			int otp = 0;
 			otp = commonMethods.generateOTP(Long.parseLong(mobileNo));
 			smsRestService.sendOTPtoMobile(otp,mobileNo);
-		} catch (Exception e) {
+			closurelogEntity.setApproveOtp(otp);
+			closurelogEntity.setApproveOtpVerified(0);
+			closurelogRepository.save(closurelogEntity);
+		}} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
 			commonMethods.sendErrorMail(EkycConstants.CLOSURE_HELPER,"sendClosureOtp",e.getMessage(),EkycConstants.CLOSURE_ERROR_CODE);
 		}
 	}
-
 }

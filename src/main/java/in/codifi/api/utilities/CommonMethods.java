@@ -20,11 +20,13 @@ import in.codifi.api.entity.ClosureEmailLogEntity;
 import in.codifi.api.entity.ClosureEmailTemplateEntity;
 import in.codifi.api.entity.ClosureErrorLogEntity;
 import in.codifi.api.entity.ClosureSmsLogEntity;
+import in.codifi.api.entity.ClosurelogEntity;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosureEmailLogRepository;
 import in.codifi.api.repository.ClosureEmailTemplateRepository;
 import in.codifi.api.repository.ClosureErrorLogRepository;
 import in.codifi.api.repository.ClosureSmsLogRepository;
+import in.codifi.api.repository.ClosurelogRepository;
 
 @ApplicationScoped
 public class CommonMethods {
@@ -41,6 +43,8 @@ public class CommonMethods {
 	ApplicationProperties props;
 	@Inject
 	ClosureSmsLogRepository smsLogRepository;
+	@Inject
+	ClosurelogRepository closurelogRepository;
 	/**
 	 * Method to construct Failed method
 	 * 
@@ -154,14 +158,18 @@ public class CommonMethods {
 		return otp;
 	}
 	
-	public void sendEsignClosureMail(String emailId) throws MessagingException {
+	public void sendEsignClosureMail(String Username,String UserId,String DPID,String emailId) throws MessagingException {
 		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("EsignClosure");
 		try {
 			System.out.println("The sendEsignClosureMail is Running");
 			List<String> toAdd = new ArrayList<>();
 			toAdd.add(emailId);
-			String body_Message = emailTempentity.getBody();
-			commonMail.sendMail(toAdd, emailTempentity.getSubject(), body_Message);
+			String body = emailTempentity.getBody();
+	        String bodyMessageNew = body
+	            .replace("{UserName}", Username)
+	            .replace("{Trading}", UserId)
+	            .replace("{Demat}", DPID);
+			commonMail.sendMail(toAdd, emailTempentity.getSubject(), bodyMessageNew);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -173,18 +181,53 @@ public class CommonMethods {
 	 * @param user
 	 * @return
 	 **/
-	public void sendClosureMail(String emailId) throws MessagingException {
-		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("Closure");
+	public void sendApprovalClosureMail(String emailId,String USerName,String DPID,String userId) throws MessagingException {
+		ClosureEmailTemplateEntity emailTempentity = emailTemplateRepository.findByKeyData("ApprovalClosure");
+		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
 		try {
 			List<String> toAdd = new ArrayList<>();
 			toAdd.add(emailId);
-			String body_Message = emailTempentity.getBody();
-			commonMail.sendMail(toAdd, emailTempentity.getSubject(), body_Message);
+			String body = emailTempentity.getBody();
+			String approvePageUrl=props.getApproveurl()+EkycConstants.APPROVE_APPLICATIONID+closurelogEntity.getId()+EkycConstants.APPROVE_USERID+userId;
+			System.out.println("the approvePageUrl"+approvePageUrl);
+	        String bodyMessageNew = body
+	            .replace("{UserName}", USerName)
+	            .replace("{Trading}", userId)
+	            .replace("{Demat}", DPID)
+	            .replace("{pageUrl}", approvePageUrl);
+			commonMail.sendMail(toAdd, emailTempentity.getSubject(), bodyMessageNew);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
+	
+	/**
+	 * Method to Send Closure Rection Mail
+	 * 
+	 * @param emailId
+	 * @return
+	 **/
+	public void sendRejectionClosureMail(String emailId, String userName, String dpId, String rejectedReason,String userId) throws MessagingException {
+	    ClosureEmailTemplateEntity emailTempEntity = emailTemplateRepository.findByKeyData("RejectionClosure");
+	    try {
+	        List<String> toAdd = new ArrayList<>();
+	        toAdd.add(emailId);
+	        String body = emailTempEntity.getBody();
+
+	        // Correct order of placeholder replacement
+	        String bodyMessageNew = body
+	            .replace("{UserName}", userName)
+	            .replace("{Trading}", userId)
+	            .replace("{Demat}", dpId)
+	            .replace("{Rejected Reason}", rejectedReason);
+
+	        commonMail.sendMail(toAdd, emailTempEntity.getSubject(), bodyMessageNew);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
 	public void storeSmsLog(String request, String smsResponse, String logMethod, long mobileNumber) {
 		if (request == null || smsResponse == null || logMethod == null) {
 			// Handle invalid input, such as throwing an IllegalArgumentException.

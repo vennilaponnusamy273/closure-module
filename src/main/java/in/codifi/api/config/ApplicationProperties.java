@@ -87,6 +87,9 @@ public class ApplicationProperties {
 	String smsAlert;
 	@ConfigProperty(name = "appconfig.sms.dlrreq")
 	String smsDlrReq;
+	
+	@ConfigProperty(name = "appconfig.approve.url")
+	String approveurl;
 
 
 }

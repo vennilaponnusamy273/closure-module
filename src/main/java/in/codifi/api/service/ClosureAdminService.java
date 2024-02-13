@@ -21,6 +21,7 @@ import in.codifi.api.helper.ClosureHelper;
 import in.codifi.api.model.LogsRequestModel;
 import in.codifi.api.model.ResponseModel;
 import in.codifi.api.repository.ClosurelogRepository;
+import in.codifi.api.restservice.SmsRestService;
 import in.codifi.api.service.spec.IClosureAdminService;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.EkycConstants;
@@ -38,6 +39,8 @@ public class ClosureAdminService implements IClosureAdminService {
 	ClosureHelper closureHelper;
 	@Inject
 	ClosurelogRepository closurelogRepository;
+	@Inject
+	SmsRestService smsRestService;
 
 	@Override
 	public ResponseModel updateClosureStatus(int status, String userId, String rejectedReason) {
@@ -58,7 +61,9 @@ public class ClosureAdminService implements IClosureAdminService {
 			closurelogRepository.save(closurelogEntity);
 
 			if (status == 1) {
-				sendClosureEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile());
+				sendClosureApprovalEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile(),closurelogEntity.getNameAsperPan()!=null?closurelogEntity.getNameAsperPan():"",closurelogEntity.getDpId(),userId);
+			}else if(status==2) {
+				sendClosureRejectionEmailandSms(closurelogEntity.getEmail(), closurelogEntity.getMobile(),closurelogEntity.getNameAsperPan()!=null?closurelogEntity.getNameAsperPan():"",closurelogEntity.getDpId(),rejectedReason,userId);
 			}
 			response.setMessage(EkycConstants.SUCCESS_MSG);
 			response.setStat(EkycConstants.SUCCESS_STATUS);
@@ -79,13 +84,13 @@ public class ClosureAdminService implements IClosureAdminService {
 		return response;
 	}
 
-	@Override
-	public ResponseModel sendClosureEmailandSmsOtp(String EmailID, String MobileNo) {
+
+	public ResponseModel sendClosureApprovalEmailandSmsOtp(String EmailID, String MobileNo,String Username, String DpID,String userId) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			if (MobileNo != null && EmailID != null) {
-				commonMethods.sendClosureMail(EmailID);
-				// closureHelper.sendClosureOtp(MobileNo);
+				commonMethods.sendApprovalClosureMail(EmailID,Username,DpID,userId);
+				 closureHelper.sendApprovalClosureSmsOTp(userId,MobileNo);
 				if (responseModel != null) {
 					responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 					responseModel.setStat(EkycConstants.SUCCESS_STATUS);
@@ -102,6 +107,28 @@ public class ClosureAdminService implements IClosureAdminService {
 		return responseModel;
 	}
 
+
+	public ResponseModel sendClosureRejectionEmailandSms(String EmailID, String MobileNo,String name,String DpId,String RejectedReason,String userId) {
+		ResponseModel responseModel = new ResponseModel();
+		try {
+			if (MobileNo != null && EmailID != null) {
+				commonMethods.sendRejectionClosureMail(EmailID,name,DpId,RejectedReason,userId);
+				smsRestService.sendRejectionClosureOtp(DpId,RejectedReason,MobileNo);
+				if (responseModel != null) {
+					responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+					responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_ADMIN_SERVICE, "sendClosureEmailandSmsOtp",
+					e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_ADMIN_SERVICE, "sendClosureEmailandSmsOtp",
+					e.getMessage(), EkycConstants.CLOSURE_ERROR_CODE);
+			responseModel = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return responseModel;
+	}
 	@Override
 	public ResponseModel resetClosureStatus(String userId) {
 		ResponseModel responseModel = new ResponseModel();

@@ -58,4 +58,7 @@ public class EkycConstants {
 	public static final String TRADING_REST_SERVICE = "tradingRestServices";
 	public static final String CLOSURE_ADMIN_SERVICE = "CLOSURE_ADMIN_SERVICE";
 	public static final String CLOSURE_SERVICE = "CLOSURE_SERVICE";
+	
+	public static final String APPROVE_APPLICATIONID = "&applicationId=";
+	public static final String APPROVE_USERID = "&userId=";
 }

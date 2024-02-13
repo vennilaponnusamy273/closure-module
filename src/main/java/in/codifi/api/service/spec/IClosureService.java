@@ -1,5 +1,6 @@
 package in.codifi.api.service.spec;
 
+import javax.mail.MessagingException;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 
@@ -104,5 +105,15 @@ public interface IClosureService {
 	 * @return
 	 */
 	Response getCMR(@NotNull String applicationId, @NotNull String type);
+	
+	/**
+	 * Method to EsignclosureMailAndSms
+	 * 
+	 * @param UserId and emailID
+	 * @param type
+	 * @return
+	 */
+
+	void EsignclosureMailAndSms(String UserId, String emailID) throws MessagingException;
 
 }

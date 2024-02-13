@@ -34,5 +34,8 @@ public class MessageConstants {
 	public static final String REJECTION_REASON_MANDATORY = "Please provide a rejected reason";
 	public static final String CLOSURE_ID_NULL = "No Closure details found for the specified user ID";
 	public static final String CLOSURE_RESET_SUCCESS = "Closure status reset successfully";
-	public static final String CLOSURE_STATUS_EXCEPTION = "Invalid status. Status must be 0 or 1.";
+	public static final String CLOSURE_STATUS_EXCEPTION = "Invalid status. status must be 1 or 2.";
+	public static final String CLOSURE_WRONG_OTP = "Invalid OTP";
+	public static final String APPROVE_SUCCESS_OTP = "OTP verified successfully.";
+
 }

@@ -23,4 +23,8 @@ public interface ClosurelogRepository extends CrudRepository<ClosurelogEntity, L
 	         @Param("fromDateTime") Date fromDateTime,
 	         @Param("toDateTime") Date toDateTime
 	 );
+	 
+	 ClosurelogEntity findByUserIdAndMobile(String termCode,String mobile);
+	 
+	 ClosurelogEntity findByIdAndUserId(long id,String userId);
 }

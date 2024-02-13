@@ -1,5 +1,6 @@
 package in.codifi.api.controller.spec;
 
+import javax.mail.MessagingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -92,5 +93,11 @@ public interface IClosureController {
 	@APIResponse(description = "Method to downloadFile document ")
 	public Response getCMR(@NotNull @QueryParam("UserId") String UserId,
 			@NotNull @QueryParam("documentType") String type);
+	
+	@Path("/sendEsigMail")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	void EsignclosureMailAndSms(@NotNull @QueryParam("UserId")String UserId,@NotNull @QueryParam("emailid")String emailId) throws MessagingException;
 
 }
