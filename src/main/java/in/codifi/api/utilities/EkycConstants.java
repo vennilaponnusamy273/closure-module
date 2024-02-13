@@ -61,4 +61,6 @@ public class EkycConstants {
 	
 	public static final String APPROVE_APPLICATIONID = "&applicationId=";
 	public static final String APPROVE_USERID = "&userId=";
+	public static final String TABLE_CREATED = "Table Created Successfully";
+	
 }
