@@ -28,13 +28,12 @@ public interface ISmsRestService {
 	 * @param dlrReq
 	 * @return
 	 */
-	@POST
-	@Produces(MediaType.TEXT_PLAIN)
-	@Consumes(MediaType.APPLICATION_JSON)
-	public String SendSms(@QueryParam("userId") String userId, @QueryParam("pass") String pass,
-			@QueryParam("appid") String appId, @QueryParam("subappid") String subAppId,
-			@QueryParam("contenttype") String contentType, @QueryParam("to") String mobileNumber,
-			@QueryParam("from") String from, @QueryParam("text") String message, @QueryParam("selfid") String selfId,
-			@QueryParam("alert") String alert, @QueryParam("dlrreq") String dlrReq);
-
+		@POST
+		@Produces(MediaType.TEXT_PLAIN)
+		@Consumes(MediaType.APPLICATION_JSON)
+		public String SendSms(@QueryParam("userId") String userId, @QueryParam("pass") String pass,
+				@QueryParam("appId") String appId, @QueryParam("subAppid") String subAppId,
+				@QueryParam("contenttype") String contentType, @QueryParam("to") String mobileNumber,
+				@QueryParam("from") String from, @QueryParam("text") String message, @QueryParam("selfid") String selfId,
+				@QueryParam("alert") String alert, @QueryParam("dlrreq") String dlrReq);
 }

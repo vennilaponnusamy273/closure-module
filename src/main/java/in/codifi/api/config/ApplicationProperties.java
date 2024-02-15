@@ -75,10 +75,10 @@ public class ApplicationProperties {
 	String smsSubAppId;
 	@ConfigProperty(name = "appconfig.sms.contenttype")
 	String smsContentType;
-	@ConfigProperty(name = "appconfig.sms.firsttext")
-	String smsFirstText;
-	@ConfigProperty(name = "appconfig.sms.secondtext")
-	String smsSecondText;
+//	@ConfigProperty(name = "appconfig.sms.firsttext")
+//	String smsFirstText;
+//	@ConfigProperty(name = "appconfig.sms.secondtext")
+//	String smsSecondText;
 	@ConfigProperty(name = "appconfig.sms.from")
 	String smsFrom;
 	@ConfigProperty(name = "appconfig.sms.selfid")

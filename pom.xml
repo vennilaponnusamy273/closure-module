@@ -44,6 +44,11 @@
 			<artifactId>quarkus-spring-data-jpa</artifactId>
 		</dependency>
 		<dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
+        <version>4.5.13</version> <!-- Use the latest version available -->
+    </dependency>
+		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-jdbc-mysql</artifactId>
 		</dependency>
