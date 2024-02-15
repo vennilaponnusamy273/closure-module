@@ -2,6 +2,7 @@ package in.codifi.api.service;
 
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -191,11 +192,12 @@ public class ClosureAdminService implements IClosureAdminService {
 
 	        // Parse into LocalDateTime instead of LocalDate
 	        LocalDateTime fromDateTime = LocalDateTime.parse(from, inputFormatter);
-	        LocalDateTime toDateTime = LocalDateTime.parse(to, inputFormatter);
 
-	        // Convert LocalDateTime to java.util.Date
+	        // Parse into LocalDateTime and set time to 23:59:59.999999 for the toDate
+	        LocalDateTime endDateTime = LocalDateTime.parse(to, inputFormatter)
+	            .with(LocalTime.of(23, 59, 59, 999999999));
 	        Date fromDate = Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant());
-	        Date toDate = Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant());
+	        Date toDate = Date.from(endDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
 	        if (logsRequestModel.getUserId() != null) {
 	            closurelogEntities = closurelogRepository.findByUserIdAndDate(logsRequestModel.getUserId(), fromDate, toDate);
