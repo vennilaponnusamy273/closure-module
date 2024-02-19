@@ -28,7 +28,7 @@ public class ClosureAdminController implements IClosureAdminController {
 	public ResponseModel updateClosureStatus(int status, String userId, String rejectedReason) {
 		ResponseModel responseModel = new ResponseModel();
 		try {
-			if (status != 1 && status != 2) {
+			if (status != 1 && status != 2&&status!=3) {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.CLOSURE_STATUS_EXCEPTION);
 			} else if (status == 2 && (rejectedReason == null || rejectedReason.isEmpty())) {
 				responseModel = commonMethods.constructFailedMsg(MessageConstants.REJECTION_REASON_MANDATORY);

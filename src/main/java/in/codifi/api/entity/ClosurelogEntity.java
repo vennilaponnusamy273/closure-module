@@ -185,4 +185,7 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	@Column(name = "approveOtpverified")
 	private int approveOtpVerified=0;
 	
+	@Column(name = "TargetDpIDType")
+	private	String TargetDpIDType;
+	
 }

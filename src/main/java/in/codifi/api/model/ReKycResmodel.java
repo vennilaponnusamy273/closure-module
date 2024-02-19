@@ -14,4 +14,5 @@ public class ReKycResmodel {
 	private String holdings_remarks;
 	private String funds_remarks;
 	private String positions_remarks;
+	private boolean cmrCopy;
 }

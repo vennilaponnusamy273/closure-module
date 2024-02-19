@@ -49,7 +49,11 @@ public class ClosureAdminService implements IClosureAdminService {
 
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
-
+			if (status == 3) {
+			    if (closurelogEntity.getAdminstatus() != 1 || closurelogEntity.getApproveOtpVerified() != 1) {
+			        return commonMethods.constructFailedMsg(MessageConstants.COMPLETE_ERROR_MESSAGE);
+			    }
+			}
 			if (closurelogEntity == null) {
 				closurelogEntity = new ClosurelogEntity();
 				closurelogEntity.setUserId(userId);
@@ -62,9 +66,13 @@ public class ClosureAdminService implements IClosureAdminService {
 			closurelogRepository.save(closurelogEntity);
 
 			if (status == 1) {
-				sendClosureApprovalEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile(),closurelogEntity.getNameAsperPan()!=null?closurelogEntity.getNameAsperPan():"",closurelogEntity.getDpId(),userId);
-			}else if(status==2) {
-				sendClosureRejectionEmailandSms(closurelogEntity.getEmail(), closurelogEntity.getMobile(),closurelogEntity.getNameAsperPan()!=null?closurelogEntity.getNameAsperPan():"",closurelogEntity.getDpId(),rejectedReason,userId);
+				sendClosureApprovalEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile(),
+						closurelogEntity.getNameAsperPan() != null ? closurelogEntity.getNameAsperPan() : "",
+						closurelogEntity.getDpId(), userId);
+			} else if (status == 2) {
+				sendClosureRejectionEmailandSms(closurelogEntity.getEmail(), closurelogEntity.getMobile(),
+						closurelogEntity.getNameAsperPan() != null ? closurelogEntity.getNameAsperPan() : "",
+						closurelogEntity.getDpId(), rejectedReason, userId);
 			}
 			response.setMessage(EkycConstants.SUCCESS_MSG);
 			response.setStat(EkycConstants.SUCCESS_STATUS);
@@ -91,7 +99,7 @@ public class ClosureAdminService implements IClosureAdminService {
 		try {
 			if (MobileNo != null && EmailID != null) {
 				commonMethods.sendApprovalClosureMail(EmailID,Username,DpID,userId);
-				 closureHelper.sendApprovalClosureSmsOTp(userId,MobileNo);
+				// closureHelper.sendApprovalClosureSmsOTp(userId,MobileNo);
 				if (responseModel != null) {
 					responseModel.setMessage(EkycConstants.SUCCESS_MSG);
 					responseModel.setStat(EkycConstants.SUCCESS_STATUS);
@@ -240,11 +248,15 @@ public class ClosureAdminService implements IClosureAdminService {
 	                    name += lastName;
 	                }
 
-	                String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : ((closurelogEntity.getAdminstatus() == 2) ? "Rejected" : "");
+	                String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : 
+	                    (closurelogEntity.getAdminstatus() == 2) ? "Rejected" :
+	                    (closurelogEntity.getAdminstatus() == 3) ? "Closed" : "";
+
 
 	                resultDetails.put("UserID", closurelogEntity.getUserId());
 	                resultDetails.put("Name", name);
 	                resultDetails.put("Status", status);
+	                resultDetails.put("approveOtpverified", closurelogEntity.getApproveOtpVerified());
 
 	                resultList.add(resultDetails);
 	            }

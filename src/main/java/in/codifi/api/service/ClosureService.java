@@ -129,6 +129,7 @@ public class ClosureService implements IClosureService {// Closure
 							ClosureDocumentEntity oldRecordsign = docrepository.findByApplicationIdAndDocumentType(
 									clientBasicData.getTermCode(), EkycConstants.CLOSURE_SIGN);
 							if (oldRecord != null && oldRecordsign != null) {
+								reKycResmodel.setCmrCopy(true);
 								reKycResmodel.setHoldings(false);
 								reKycResmodel.setHoldings_remarks(MessageConstants.CMR_AVAILABLE);
 								response.setStat(EkycConstants.SUCCESS_STATUS);
@@ -780,7 +781,7 @@ public class ClosureService implements IClosureService {// Closure
 	}
 
 	@Override
-	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason, String TargetDpID, String DpId) {
+	public ResponseModel updateAccTypeReason(String userId, int accType, String accCloseReason, String TargetDpID, String DpId,String TargetDpIDType) {
 	    ResponseModel responseModel = new ResponseModel();
 	    try {
 	        ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
@@ -794,6 +795,7 @@ public class ClosureService implements IClosureService {// Closure
 	        closurelogEntity.setAccclosingreasion(accCloseReason);
 	        closurelogEntity.setTargetDpID(TargetDpID);
 	        closurelogEntity.setDpId(DpId);
+	        closurelogEntity.setTargetDpIDType(TargetDpIDType);
 
 	        closurelogRepository.save(closurelogEntity);
 

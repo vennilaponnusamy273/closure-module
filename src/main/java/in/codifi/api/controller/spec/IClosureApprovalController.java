@@ -29,4 +29,10 @@ public interface IClosureApprovalController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	ResponseModel verifyOtp(@NotNull @QueryParam("id") String id,@NotNull @QueryParam("userId") String userId,@NotNull @QueryParam("otp") int otp);
+	
+	@Path("/sendOtp")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	ResponseModel sendOtp(@NotNull @QueryParam("userId") String userId);
 }

@@ -37,6 +37,7 @@ public class MessageConstants {
 	public static final String CLOSURE_STATUS_EXCEPTION = "Invalid status. status must be 1 or 2.";
 	public static final String CLOSURE_WRONG_OTP = "Invalid OTP";
 	public static final String APPROVE_SUCCESS_OTP = "OTP verified successfully.";
+	public static final String SEND_SUCCESS_OTP = "OTP send successfully.";
 	public static final String FAILED = "Failed";
-
+	public static final String COMPLETE_ERROR_MESSAGE = "OTP not verified or approval pending";
 }
