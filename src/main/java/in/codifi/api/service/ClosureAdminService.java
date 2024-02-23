@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -275,6 +276,51 @@ public class ClosureAdminService implements IClosureAdminService {
 	    }
 
 	    return responseModel;
+	}
+
+
+	@Override
+	public ResponseModel getStatusCount(LogsRequestModel logsRequestModel) {
+		ResponseModel responseModel = new ResponseModel();
+
+		try {
+			String from = logsRequestModel.getFromDate();
+			String to = logsRequestModel.getToDate();
+
+			LocalDateTime fromDateTime = LocalDateTime.parse(from, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			LocalDateTime endDateTime = LocalDateTime.parse(to, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+					.with(LocalTime.of(23, 59, 59, 999999999));
+
+			Date fromDate = Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant());
+			Date toDate = Date.from(endDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+			List<Object[]> result = closurelogRepository.findStatus(fromDate, toDate);
+			if (result != null && !result.isEmpty()) {
+				Object[] row = result.get(0); // Assuming you expect only one row
+
+				Map<String, Object> resultData = new HashMap<>();
+				resultData.put("Total Record Count", row[0]);
+				resultData.put("Approved Count", row[1]);
+				resultData.put("Rejected Count", row[2]);
+				resultData.put("New/Reset Count", row[3]);
+				resultData.put("Verified Count", row[4]);
+				resultData.put("Not Verified Count", row[5]);
+				responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+				responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+				responseModel.setResult(resultData);
+
+			} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.NO_RECORD_FOUND);
+			}
+		} catch (DateTimeParseException e) {
+			logger.error("Error parsing date: " + e.getMessage());
+			responseModel = commonMethods.constructFailedMsg(MessageConstants.INVALID_DATE_FORMAT);
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage(), e);
+			responseModel = commonMethods.constructFailedMsg("An error occurred while processing the request.");
+		}
+
+		return responseModel;
 	}
 
 }

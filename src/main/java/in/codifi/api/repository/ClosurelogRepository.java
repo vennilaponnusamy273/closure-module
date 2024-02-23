@@ -27,4 +27,15 @@ public interface ClosurelogRepository extends CrudRepository<ClosurelogEntity, L
 	 ClosurelogEntity findByUserIdAndMobile(String termCode,String mobile);
 	 
 	 ClosurelogEntity findByIdAndUserId(long id,String userId);
+	 
+	 @Query("SELECT COUNT(ce) AS recordCount, " +
+		       "SUM(CASE WHEN ce.adminstatus = 1 THEN 1 ELSE 0 END) AS approvedCount, " +
+		       "SUM(CASE WHEN ce.adminstatus = 2 THEN 1 ELSE 0 END) AS rejectedCount, " +
+		       "SUM(CASE WHEN ce.adminstatus = 0 THEN 1 ELSE 0 END) AS unknownCount, " +
+		       "SUM(CASE WHEN ce.approveOtpVerified = 1 THEN 1 ELSE 0 END) AS verifiedCount, " +
+		       "SUM(CASE WHEN ce.approveOtpVerified = 0 THEN 1 ELSE 0 END) AS notVerifiedCount " +
+		       "FROM tbl_closure_log ce " +
+		       "WHERE ce.createdOn BETWEEN :fromDateTime AND :toDateTime")
+		List<Object[]> findStatus(@Param("fromDateTime") Date fromDateTime,
+		                          @Param("toDateTime") Date toDateTime);
 }

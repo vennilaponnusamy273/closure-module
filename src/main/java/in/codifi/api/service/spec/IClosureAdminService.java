@@ -48,4 +48,15 @@ public interface IClosureAdminService {
 	ResponseModel getClosureStatus(String userId);
 	
 	ResponseModel getClosureLogs(LogsRequestModel logsRequestModel);
+	
+	/**
+	 * method to getStatusCount
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param LogsRequestModel
+	 * @return
+	 */
+
+	ResponseModel getStatusCount(LogsRequestModel logsRequestModel);
 }

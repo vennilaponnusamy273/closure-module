@@ -40,4 +40,6 @@ public class MessageConstants {
 	public static final String SEND_SUCCESS_OTP = "OTP send successfully.";
 	public static final String FAILED = "Failed";
 	public static final String COMPLETE_ERROR_MESSAGE = "OTP not verified or approval pending";
+	public static final String NO_RECORD_FOUND = "No data found for the specified date range.";
+	public static final String INVALID_DATE_FORMAT = "Invalid date format. Please provide the date in the format 'yyyy-MM-dd HH:mm:ss'.";
 }

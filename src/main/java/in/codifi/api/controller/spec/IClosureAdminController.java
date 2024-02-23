@@ -41,4 +41,10 @@ public interface IClosureAdminController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	ResponseModel getClosureLogs(@RequestBody LogsRequestModel logsRequestModel);
+	
+	@Path("/getStatusCount")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	ResponseModel getStatusCount(@RequestBody LogsRequestModel logsRequestModel);
 }

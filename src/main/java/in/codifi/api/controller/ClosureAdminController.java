@@ -96,4 +96,19 @@ public class ClosureAdminController implements IClosureAdminController {
 		}
 		return response;
 	}
+	
+	@Override
+	public ResponseModel getStatusCount(LogsRequestModel logsRequestModel) {
+		ResponseModel response = new ResponseModel();
+		try {
+			if (logsRequestModel!=null) {
+				response = IclosureAdminService.getStatusCount(logsRequestModel);
+			} else {
+				response = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+			}
+		} catch (Exception e) {
+			response = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return response;
+	}
 }
