@@ -145,4 +145,15 @@ public class ClosureController implements IClosureController {
 	public void EsignclosureMailAndSms(String UserId, String emailId) throws MessagingException {
 		closureService.EsignclosureMailAndSms(UserId, emailId);
 	}
+
+	@Override
+	public ResponseModel getclosureStatus(String UserId) {
+		ResponseModel responseModel = new ResponseModel();
+		if (UserId != null ) {
+			responseModel = closureService.getClosureStatus(UserId);
+		} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+		}
+		return responseModel;
+	}
 }

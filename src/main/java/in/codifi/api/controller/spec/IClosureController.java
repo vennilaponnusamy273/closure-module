@@ -99,5 +99,11 @@ public interface IClosureController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	void EsignclosureMailAndSms(@NotNull @QueryParam("UserId")String UserId,@NotNull @QueryParam("emailid")String emailId) throws MessagingException;
+	
+	@Path("/getclosureStatus")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	ResponseModel getclosureStatus(@NotNull @QueryParam("UserId")String UserId);
 
 }

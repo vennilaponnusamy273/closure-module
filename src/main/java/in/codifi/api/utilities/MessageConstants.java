@@ -42,4 +42,6 @@ public class MessageConstants {
 	public static final String COMPLETE_ERROR_MESSAGE = "OTP not verified or approval pending";
 	public static final String NO_RECORD_FOUND = "No data found for the specified date range.";
 	public static final String INVALID_DATE_FORMAT = "Invalid date format. Please provide the date in the format 'yyyy-MM-dd HH:mm:ss'.";
+	public static final String APPROVED = "Your application is already approved";
+	public static final String CLOSED = "Your application is closed";
 }

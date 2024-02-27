@@ -1009,4 +1009,43 @@ public class ClosureService implements IClosureService {// Closure
 					.entity("Failed to download file: " + e.getMessage()).build();
 		}
 	}
+
+	@Override
+	public ResponseModel getClosureStatus(String userId) {
+	    ResponseModel responseModel = new ResponseModel(); 
+
+	    try {
+	        ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+
+	        if (closurelogEntity != null) {
+	            switch (closurelogEntity.getAdminstatus()) {
+	                case 1:
+	                    responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	                    responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+	                    responseModel.setResult(MessageConstants.APPROVED);
+	                    break;
+	                case 3:
+	                    responseModel.setMessage(EkycConstants.SUCCESS_MSG);
+	                    responseModel.setStat(EkycConstants.SUCCESS_STATUS);
+	                    responseModel.setResult(MessageConstants.CLOSED);
+	                    break;
+	                default:
+	                    responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+	                    break;
+	            }
+	        } else {
+	            responseModel = commonMethods.constructFailedMsg(MessageConstants.USER_ID_NULL);
+	        }
+	    } catch (Exception e) {
+	        logger.error("An error occurred: " + e.getMessage());
+	        commonMethods.SaveLog(null, EkycConstants.CLOSURE_SERVICE, "getClosureStatus", e.getMessage());
+	        commonMethods.sendErrorMail(
+	                EkycConstants.CLOSURE_SERVICE, "getClosureStatus", e.getMessage(), EkycConstants.CLOSURE_ERROR_CODE
+	        );
+	    }
+
+	    return responseModel;
+	}
+
+
 }

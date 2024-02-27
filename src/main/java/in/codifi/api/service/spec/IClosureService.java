@@ -116,4 +116,16 @@ public interface IClosureService {
 
 	void EsignclosureMailAndSms(String UserId, String emailID) throws MessagingException;
 
+	
+	
+	/**
+	 * method to getclosureStatus
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param userId
+	 * @return
+	 */
+	ResponseModel getClosureStatus(String userId);
+
 }
