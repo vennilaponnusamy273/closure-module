@@ -658,8 +658,12 @@ public class ClosureService implements IClosureService {// Closure
 				map.put("NSDL", dpId);
 			}
 		}
+		String clientId = clientBasicData.getTermCode();
+		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientId);
+		String getDpIDs=closurelogEntity.getDpId();
+		String TargetDPID=closurelogEntity.getTargetDpID();
 		String tradingId = clientBasicData.getOwnCode();
-		if (tradingId != null && tradingId.length() >= 9) {
+		if (tradingId != null && tradingId.length() >= 9&&closurelogEntity.getAccType() != 2) {
 			map.put("TRADING ID:1", String.valueOf(tradingId.charAt(0)));
 			map.put("TRADING ID:2", String.valueOf(tradingId.charAt(1)));
 			map.put("TRADING ID:3", String.valueOf(tradingId.charAt(2)));
@@ -683,10 +687,7 @@ public class ClosureService implements IClosureService {// Closure
 			map.put("DP ID7", String.valueOf(dpIdDefault.charAt(6)));
 			map.put("DP ID8", String.valueOf(dpIdDefault.charAt(7)));
 		}
-		String clientId = clientBasicData.getTermCode();
-		ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(clientId);
-		String getDpIDs=closurelogEntity.getDpId();
-		String TargetDPID=closurelogEntity.getTargetDpID();
+		
 //		if (getDpIDs != null) {
 //		    String[] dpIdsArray = getDpIDs.split(",");
 //		    for (String targetdpId : dpIdsArray) {
