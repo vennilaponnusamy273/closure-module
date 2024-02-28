@@ -135,6 +135,7 @@ public class ClosureService implements IClosureService {// Closure
 								response.setStat(EkycConstants.SUCCESS_STATUS);
 								response.setMessage(EkycConstants.SUCCESS_MSG);
 								response.setResult(reKycResmodel);
+								reKycResmodel.setHoldings(true);
 								saveRekycLog(token, reKycResmodel);
 							} else {
 								reKycResmodel.setHoldings_remarks(MessageConstants.HOLDINGS_EXIST);

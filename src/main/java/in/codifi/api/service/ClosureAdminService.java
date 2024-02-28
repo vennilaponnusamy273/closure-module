@@ -250,6 +250,7 @@ public class ClosureAdminService implements IClosureAdminService {
 	                }
 
 	                String status = (closurelogEntity.getAdminstatus() == 1) ? "Approved" : 
+	                	(closurelogEntity.getAdminstatus() == 0) ? "InProgress" : 
 	                    (closurelogEntity.getAdminstatus() == 2) ? "Rejected" :
 	                    (closurelogEntity.getAdminstatus() == 3) ? "Closed" : "";
 
