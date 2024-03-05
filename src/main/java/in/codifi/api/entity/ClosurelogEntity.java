@@ -180,7 +180,7 @@ public class ClosurelogEntity extends ClosureCommonEntity{
 	private String RejectedReason;
 	
 	@Column(name = "approveOtp")
-	private int approveOtp;
+	private int approveOtp=0;
 	
 	@Column(name = "approveOtpverified")
 	private int approveOtpVerified=0;

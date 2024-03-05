@@ -40,9 +40,12 @@ public interface ClosurelogRepository extends CrudRepository<ClosurelogEntity, L
 		                          @Param("toDateTime") Date toDateTime);
 		
 		
-//		@Query("SELECT ce FROM tbl_closure_log ce " +
-//			       "WHERE ce.adminstatus <> 1 " +
-//			       "AND STR_TO_DATE(ce.approveOtpSendDate, '%d/%m/%Y/%H:%i:%s') >= FUNCTION('DATE_ADD', CURRENT_DATE, -7, 'DAY') " +
-//			       "AND STR_TO_DATE(ce.approveOtpSendDate, '%d/%m/%Y/%H:%i:%s') < FUNCTION('DATE_ADD', CURRENT_DATE, -6, 'DAY')")
-//			List<ClosurelogEntity> findRecordsToAutoReject();
+		@Query("SELECT cl FROM tbl_closure_log cl WHERE cl.adminstatus <> 1 AND STR_TO_DATE(cl.approveOtpSendDate, '%d/%m/%Y/%H:%i:%s') >= STR_TO_DATE(:interval1, '%Y-%m-%d') AND STR_TO_DATE(cl.approveOtpSendDate, '%d/%m/%Y/%H:%i:%s') < STR_TO_DATE(:interval2, '%Y-%m-%d')")
+		List<ClosurelogEntity> findRecordsToAutoReject(
+		    @Param("interval1") String interval1,
+		    @Param("interval2") String interval2
+		);
+
+
+
 }

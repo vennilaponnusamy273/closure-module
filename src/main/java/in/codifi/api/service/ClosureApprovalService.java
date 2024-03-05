@@ -1,6 +1,8 @@
 package in.codifi.api.service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -106,30 +108,41 @@ public class ClosureApprovalService  implements IClosureApprovalService{
 	    }
 	}
 	
-//		//@Scheduled(cron = "0 0 1 */7 * ?")
-//	@Scheduled(every = "1m01s")
-//	    public void checkAndAutoRejectOtp() {
-//	        autoRejectOtp();
-//	    }
-//
-//		public ResponseModel autoRejectOtp() {
-//		    ResponseModel response = new ResponseModel();
-//		    try {
-//		    	System.out.println("the closure is running");
-//		        List<ClosurelogEntity> closureLogs = closurelogRepository.findRecordsToAutoReject();
-//
-//		        for (ClosurelogEntity closurelogEntity : closureLogs) {
-//		            closurelogEntity.setAdminstatus(2);
-//		            closurelogRepository.save(closurelogEntity);
-//		        }
-//		        response.setStat(EkycConstants.SUCCESS_STATUS);
-//                response.setMessage(EkycConstants.SUCCESS_MSG);
-//                response.setResult(EkycConstants.SUCCESS_MSG);
-//		    } catch (Exception e) {
-//		        e.printStackTrace();
-//		        response = commonMethods.constructFailedMsg(e.getMessage());
-//		    }
-//		    return response;
-//		}
+		//@Scheduled(cron = "0 0 1 */7 * ?")
+		@Scheduled(cron = "0 0 7 * * ?")
+	    public void checkAndAutoRejectOtp() {
+	        autoRejectOtp();
+	    }
+
+	public ResponseModel autoRejectOtp() {
+	    ResponseModel response = new ResponseModel();
+	    try {
+	        System.out.println("the closure is running");
+
+	        // Calculate the intervals for the findRecordsToAutoReject method
+	        LocalDate currentDate = LocalDate.now();
+	        LocalDate interval1Start = currentDate.minus(Period.ofDays(7));
+	        LocalDate interval2Start = currentDate.minus(Period.ofDays(6));
+
+	        // Call the findRecordsToAutoReject method with calculated intervals
+	        List<ClosurelogEntity> closureLogs = closurelogRepository.findRecordsToAutoReject(
+	            interval1Start.toString(), interval2Start.toString()
+	        );
+
+	        // Update the entities and save them
+	        for (ClosurelogEntity closurelogEntity : closureLogs) {
+	            closurelogEntity.setAdminstatus(2);
+	            closurelogRepository.save(closurelogEntity);
+	        }
+
+	        response.setStat(EkycConstants.SUCCESS_STATUS);
+	        response.setMessage(EkycConstants.SUCCESS_MSG);
+	        response.setResult(EkycConstants.SUCCESS_MSG);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response = commonMethods.constructFailedMsg(e.getMessage());
+	    }
+	    return response;
+	}
 
 }
