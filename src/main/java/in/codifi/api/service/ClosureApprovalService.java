@@ -26,6 +26,7 @@ import in.codifi.api.utilities.CommonMail;
 import in.codifi.api.utilities.CommonMethods;
 import in.codifi.api.utilities.EkycConstants;
 import in.codifi.api.utilities.MessageConstants;
+import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class ClosureApprovalService  implements IClosureApprovalService{
@@ -55,7 +56,7 @@ public class ClosureApprovalService  implements IClosureApprovalService{
 	    ResponseModel response = new ResponseModel();
 	    try {
 	        ClosurelogEntity closurelogEntity = closurelogRepository.findByIdAndUserId(Long.parseLong(id), userId);
-	        if (closurelogEntity != null) {
+	        if (closurelogEntity != null&&closurelogEntity.getAdminstatus()==1) {
 	            int existingOtp = closurelogEntity.getApproveOtp();
 	            if (existingOtp == otp) {
 	                closurelogEntity.setApproveOtpVerified(1);
@@ -69,7 +70,7 @@ public class ClosureApprovalService  implements IClosureApprovalService{
 	                response = commonMethods.constructFailedMsg(MessageConstants.CLOSURE_WRONG_OTP);
 	            }
 	        } else {
-	            response = commonMethods.constructFailedMsg(MessageConstants.USER_ID_INVALID);
+	        	response = commonMethods.constructFailedMsg(MessageConstants.NOT_APPROVED);
 	        }
 	    } catch (Exception e) {
 	        logger.error("An error occurred: " + e.getMessage());
@@ -87,20 +88,48 @@ public class ClosureApprovalService  implements IClosureApprovalService{
 	        List<String> toAdd = new ArrayList<>();
 	        toAdd.add(closurelogEntity.getEmail());
 	        String body = emailTempentity.getBody();
-
+	        if(closurelogEntity!=null) {
 	        // Format the current date
 	        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy/HH:mm:ss");
 	        String currentdate = dateFormat.format(new Date());
-
+//	        System.out.println("the currentdate"+currentdate);
+//	        closurelogEntity.setApproveOtpSendDate(currentdate);
+//	        closurelogRepository.save(closurelogEntity);
 	        String bodyMessageNew = body
 	                .replace("{UserName}", closurelogEntity.getNameAsperPan())
 	                .replace("{Trading}", userId)
 	                .replace("{Demat}", closurelogEntity.getDpId())
 	                .replace("{Date}", currentdate);
 	        commonMail.sendMail(toAdd, emailTempentity.getSubject(), bodyMessageNew);
-	    } catch (Exception e) {
+	    } }catch (Exception e) {
 	        e.printStackTrace();
 	    }
 	}
+	
+//		//@Scheduled(cron = "0 0 1 */7 * ?")
+//	@Scheduled(every = "1m01s")
+//	    public void checkAndAutoRejectOtp() {
+//	        autoRejectOtp();
+//	    }
+//
+//		public ResponseModel autoRejectOtp() {
+//		    ResponseModel response = new ResponseModel();
+//		    try {
+//		    	System.out.println("the closure is running");
+//		        List<ClosurelogEntity> closureLogs = closurelogRepository.findRecordsToAutoReject();
+//
+//		        for (ClosurelogEntity closurelogEntity : closureLogs) {
+//		            closurelogEntity.setAdminstatus(2);
+//		            closurelogRepository.save(closurelogEntity);
+//		        }
+//		        response.setStat(EkycConstants.SUCCESS_STATUS);
+//                response.setMessage(EkycConstants.SUCCESS_MSG);
+//                response.setResult(EkycConstants.SUCCESS_MSG);
+//		    } catch (Exception e) {
+//		        e.printStackTrace();
+//		        response = commonMethods.constructFailedMsg(e.getMessage());
+//		    }
+//		    return response;
+//		}
 
 }

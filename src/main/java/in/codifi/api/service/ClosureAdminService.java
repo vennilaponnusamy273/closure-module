@@ -324,4 +324,32 @@ public class ClosureAdminService implements IClosureAdminService {
 		return responseModel;
 	}
 
+
+	@Override
+	public ResponseModel resendConfirmationMail(String userId) {
+		ResponseModel response = new ResponseModel();
+
+		try {
+			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userId);
+			if (closurelogEntity.getAdminstatus() == 1) {
+				sendClosureApprovalEmailandSmsOtp(closurelogEntity.getEmail(), closurelogEntity.getMobile(),
+						closurelogEntity.getNameAsperPan() != null ? closurelogEntity.getNameAsperPan() : "",
+						closurelogEntity.getDpId(), userId);
+				response.setMessage(EkycConstants.SUCCESS_MSG);
+				response.setStat(EkycConstants.SUCCESS_STATUS);
+				response.setResult(MessageConstants.MAIL_SUCCESS);
+			} else {
+				response = commonMethods.constructFailedMsg(MessageConstants.NOT_APPROVED);
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.SaveLog(null, EkycConstants.CLOSURE_ADMIN_SERVICE, "updateClosureStatus", e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_ADMIN_SERVICE, "updateClosureStatus", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
+			response = commonMethods.constructFailedMsg(e.getMessage());
+		}
+
+		return response;
+	}
+
 }

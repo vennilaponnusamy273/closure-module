@@ -4,6 +4,7 @@ public class EkycConstants {
 
 	public static final String CMR_COPY = "CMR_COPY";
 	public static final String CLOSURE_SIGN = "CLOSURE_SIGNATURE";
+	public static final String CLOSURE_PHYSICAL_SIGN = "CLOSURE_PHYSICAL_SIGNATURE";
 	
 	public static final int FAILED_STATUS = 0;
 	public static final int SUCCESS_STATUS = 1;
@@ -48,9 +49,9 @@ public class EkycConstants {
 	public static final String PAGE_NSDL = "/closure/getNsdlXml";
 	
 	//UAT
-	//public static final String SITE_URL_FILE = "https://uattrade.cholasecurities.com/home";
+	public static final String SITE_URL_FILE = "https://uattrade.cholasecurities.com/home";
 	//PROD
-	public static final String SITE_URL_FILE = "https://trade.cholasecurities.com/home";
+	//public static final String SITE_URL_FILE = "https://trade.cholasecurities.com/home";
 	public static final String DOC_CLOSURE_ESIGN = "CLOSURE_ESIGN_DOCUMENT";
 	public static final String CLOSURE_EMAIL = "CLOSURE_EMAIL";
 	

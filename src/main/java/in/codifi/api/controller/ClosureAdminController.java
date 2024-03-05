@@ -111,4 +111,21 @@ public class ClosureAdminController implements IClosureAdminController {
 		}
 		return response;
 	}
+
+	@Override
+	public ResponseModel resendConfirmationMail(String userId) {
+		ResponseModel responseModel = new ResponseModel();
+		try {
+			if (userId != null) {
+				responseModel = IclosureAdminService.resendConfirmationMail(userId);
+			} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.PARAMETER_NULL);
+			}
+		} catch (Exception e) {
+			logger.error("An error occurred: " + e.getMessage());
+			commonMethods.sendErrorMail(EkycConstants.CLOSUREADMINCONTROLLER,"resendConfirmationMail",e.getMessage(),EkycConstants.CLOSURE_ERROR_CODE);
+			responseModel = commonMethods.constructFailedMsg(e.getMessage());
+		}
+		return responseModel;
+	}
 }

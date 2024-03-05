@@ -44,7 +44,7 @@ public class ClosureController implements IClosureController {
 		System.out.println("the uploadCmrCopy controller");
 		if (fileModel != null && fileModel.getApplicationId() !=null &&
 			    (fileModel.getDocumentType().contains(EkycConstants.CMR_COPY) ||
-			     fileModel.getDocumentType().contains(EkycConstants.CLOSURE_SIGN))) {
+			     fileModel.getDocumentType().contains(EkycConstants.CLOSURE_SIGN)||fileModel.getDocumentType().contains(EkycConstants.CLOSURE_PHYSICAL_SIGN))) {
 			System.out.println("the fileModel"+fileModel.getDocumentType());
 			response = closureService.UploadCMR(fileModel);
 		} else {

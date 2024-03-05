@@ -489,9 +489,11 @@ public class ClosureService implements IClosureService {// Closure
 	            termCode, EkycConstants.CMR_COPY);
 	    ClosureDocumentEntity oldRecordsign = docrepository.findByApplicationIdAndDocumentType(
 	            termCode, EkycConstants.CLOSURE_SIGN);
+	    ClosureDocumentEntity oldRecordPhysicalsign = docrepository.findByApplicationIdAndDocumentType(
+	            termCode, EkycConstants.CLOSURE_PHYSICAL_SIGN);
 
 	    // Create a list to iterate through the entities
-	    List<ClosureDocumentEntity> entities = Arrays.asList(oldRecordCMR, oldRecordsign);
+	    List<ClosureDocumentEntity> entities = Arrays.asList(oldRecordCMR, oldRecordsign,oldRecordPhysicalsign);
 
 	    for (ClosureDocumentEntity entity : entities) {
 	        if (entity != null) {

@@ -1,5 +1,8 @@
 package in.codifi.api.helper;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -36,17 +39,25 @@ public class ClosureHelper {
 		ResponseModel responseModel = new ResponseModel();
 		try {
 			ClosurelogEntity closurelogEntity = closurelogRepository.findByUserId(userID);
-			if(closurelogEntity!=null) {
-			int otp = 0;
-			otp = commonMethods.generateOTP(Long.parseLong(closurelogEntity.getMobile()));
-			smsRestService.sendOTPtoMobile(otp,closurelogEntity.getMobile());
-			closurelogEntity.setApproveOtp(otp);
-			closurelogEntity.setApproveOtpVerified(0);
-			closurelogRepository.save(closurelogEntity);
-			responseModel.setResult(MessageConstants.SEND_SUCCESS_OTP);
-		}} catch (Exception e) {
+			if (closurelogEntity != null && closurelogEntity.getAdminstatus() == 1) {
+				int otp = 0;
+				otp = commonMethods.generateOTP(Long.parseLong(closurelogEntity.getMobile()));
+				smsRestService.sendOTPtoMobile(otp, closurelogEntity.getMobile());
+				closurelogEntity.setApproveOtp(otp);
+				closurelogEntity.setApproveOtpVerified(0);
+				SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy/HH:mm:ss");
+		        String currentdate = dateFormat.format(new Date());
+		        System.out.println("the currentdate"+currentdate);
+		        closurelogEntity.setApproveOtpSendDate(currentdate);
+				closurelogRepository.save(closurelogEntity);
+				responseModel.setResult(MessageConstants.SEND_SUCCESS_OTP);
+			} else {
+				responseModel = commonMethods.constructFailedMsg(MessageConstants.NOT_APPROVED);
+			}
+		} catch (Exception e) {
 			logger.error("An error occurred: " + e.getMessage());
-			commonMethods.sendErrorMail(EkycConstants.CLOSURE_HELPER,"sendClosureOtp",e.getMessage(),EkycConstants.CLOSURE_ERROR_CODE);
+			commonMethods.sendErrorMail(EkycConstants.CLOSURE_HELPER, "sendClosureOtp", e.getMessage(),
+					EkycConstants.CLOSURE_ERROR_CODE);
 		}
 		return responseModel;
 	}

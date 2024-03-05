@@ -59,4 +59,15 @@ public interface IClosureAdminService {
 	 */
 
 	ResponseModel getStatusCount(LogsRequestModel logsRequestModel);
+	
+	/**
+	 * method to resendConfirmationMail
+	 * 
+	 * @author Vennila
+	 * 
+	 * @param userId
+	 * @return
+	 */
+
+	ResponseModel resendConfirmationMail(String userId);
 }

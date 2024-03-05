@@ -47,4 +47,10 @@ public interface IClosureAdminController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	ResponseModel getStatusCount(@RequestBody LogsRequestModel logsRequestModel);
+	
+	@Path("/resendConfirmationMail")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	ResponseModel resendConfirmationMail(@NotNull @QueryParam("userId") String userId);
 }
